@@ -39,6 +39,13 @@ scripts/external.sh image <out.png> "<prompt>"              # image via Codex (t
 
 Hand off a piece only when ALL hold: it's self-contained, the prompt can carry everything the worker needs (paste the relevant file contents or a precise description; workers can't see your conversation), and it saves you reading or thinking. Good targets: "summarize these logs", "write unit tests for this function (code below)", "second opinion on this design", "generate test data", images. Keep in your own session: anything that needs repo-wide tool use, and all edits and final verification.
 
+When a plan runs out, fall back in this order: codex → gemini (Antigravity) → claude → **local** (Ollama via Codex `--oss`: free, unlimited, full agent) → **free** (OpenRouter/Groq free API: read-only text only, opt-in with `TOKENWISE_ALLOW_FREE=1`, never send private code or secrets).
+
+```bash
+scripts/external.sh ask local "<prompt>" [-m gpt-oss:20b]   # brew install ollama && ollama pull gpt-oss:20b
+scripts/external.sh ask free  "<prompt>"                    # needs OPENROUTER_API_KEY or GROQ_API_KEY
+```
+
 Spreading work across providers is the point: if the user's Codex limit is tight, send Light/Standard text work to `claude haiku/sonnet` or Gemini, and vice versa.
 
 ## 4. Images

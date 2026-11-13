@@ -90,9 +90,11 @@ Safety rails: workers run read-only or in an isolated temp folder, never get sec
 npm install -g @openai/codex && codex login           # images + second opinions
 agy   # Gemini via Google Antigravity (in Gemini.app on macOS): run once to sign in with Google
 # or: npm install -g @google/gemini-cli && export GEMINI_API_KEY=...   (Gemini CLI's own Google sign-in no longer works for individuals)
+brew install ollama && ollama pull gpt-oss:20b        # local fallback: free, unlimited, full agent (via Codex --oss)
+# free API fallback (read-only text): set OPENROUTER_API_KEY or GROQ_API_KEY and TOKENWISE_ALLOW_FREE=1
 ```
 
-Both are optional; tokenwise works fine without them.
+All of these are optional; tokenwise works fine without them. When a paid plan runs out, work falls back automatically in the order codex → gemini → claude → local (Ollama) → free API.
 
 ## What you'll see
 

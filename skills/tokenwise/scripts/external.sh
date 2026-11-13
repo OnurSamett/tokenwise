@@ -6,6 +6,9 @@
 #   external.sh check
 #   external.sh image <out.png> "<prompt>"              [-m luna|terra|sol] [-e low|medium|high]
 #   external.sh ask <codex|gemini|claude> "<prompt>"    [-m MODEL] [-e low|medium|high|xhigh]
+#   external.sh ask local "<prompt>"                    [-m MODEL]   # Ollama via Codex CLI --oss (default gpt-oss:20b, TOKENWISE_LOCAL_MODEL); free, unlimited, full agent
+#   external.sh ask free  "<prompt>"                    [-m MODEL]   # OpenRouter :free / Groq (OPENROUTER_API_KEY or GROQ_API_KEY); read-only text,
+#                                                                    # opt-in: TOKENWISE_ALLOW_FREE=1 (free tiers may train on prompts); TOKENWISE_FREE_MODEL
 #     codex models: luna|terra|sol|astra   claude models: haiku|sonnet|opus
 #     gemini (via Antigravity): hydrogen (default) | argon (frontier) | flash (older), or any -m name with Gemini CLI + API key
 #
@@ -92,6 +95,23 @@ codex_model_args() {
   echo "codex model: $slug / $eff" >&2
 }
 
+# Local fallback: Ollama driven through Codex CLI's --oss mode.
+local_model() { echo "${MODEL:-${TOKENWISE_LOCAL_MODEL:-gpt-oss:20b}}"; }
+local_problem() {  # prints what is missing (empty if ready)
+  local m; m="$(local_model)"
+  has ollama || { echo "ollama not installed -> brew install ollama"; return; }
+  has codex || { echo "codex not installed -> npm install -g @openai/codex"; return; }
+  ollama list >/dev/null 2>&1 || { echo "Ollama server not running -> ollama serve (or: brew services start ollama)"; return; }
+  ollama list 2>/dev/null | awk 'NR>1{print $1}' | grep -qx "$m" || echo "model $m not pulled -> ollama pull $m"
+}
+
+# Free-tier API fallback (OpenAI-compatible). Sets FREE_NAME / FREE_BASE / FREE_KEY.
+free_provider() {
+  if [ -n "${OPENROUTER_API_KEY:-}" ]; then FREE_NAME=openrouter; FREE_BASE="https://openrouter.ai/api/v1"; FREE_KEY="$OPENROUTER_API_KEY"
+  elif [ -n "${GROQ_API_KEY:-}" ]; then FREE_NAME=groq; FREE_BASE="https://api.groq.com/openai/v1"; FREE_KEY="$GROQ_API_KEY"
+  else return 1; fi
+}
+
 claude_ready() { has claude && claude auth status 2>/dev/null | grep -q '"loggedIn": true'; }
 
 cmd="${1:-}"; shift || true
@@ -109,6 +129,10 @@ case "$cmd" in
     if claude_ready; then echo "claude: ready (models: haiku, sonnet, opus)";
     elif has claude; then echo "claude: installed, NOT signed in -> user runs: claude auth login";
     else echo "claude: not installed -> npm install -g @anthropic-ai/claude-code"; fi
+    lp="$(local_problem)"
+    if [ -z "$lp" ]; then echo "local: ready (ollama, model $(local_model))"; else echo "local: $lp"; fi
+    if free_provider; then echo "free: ready via $FREE_NAME (opt-in: $( [ "${TOKENWISE_ALLOW_FREE:-0}" = 1 ] && echo on || echo off ))";
+    else echo "free: not configured -> export OPENROUTER_API_KEY=... or GROQ_API_KEY=... (and TOKENWISE_ALLOW_FREE=1 to opt in)"; fi
     ;;
 
   image)
@@ -129,7 +153,7 @@ case "$cmd" in
     ;;
 
   ask)
-    who="${1:?codex|gemini}"; prompt="${2:?prompt required}"; shift 2
+    who="${1:?codex|gemini|claude|local|free}"; prompt="${2:?prompt required}"; shift 2
     parse_opts "$@"
     case "$who" in
       codex)
@@ -157,10 +181,65 @@ case "$cmd" in
         echo "claude model: $m / $e" >&2
         claude -p "$prompt" --model "$m" --effort "$e" --permission-mode plan --output-format text 2>/dev/null
         ;;
+      local)
+        lp="$(local_problem)"
+        [ -z "$lp" ] || { echo "ERROR: local worker not ready: $lp" >&2; exit 2; }
+        m="$(local_model)"; echo "local model: $m (Ollama)" >&2
+        last="$(mktemp)"
+        codex exec --oss --local-provider ollama -m "$m" --skip-git-repo-check --sandbox read-only --output-last-message "$last" "$prompt" >/dev/null 2>&1
+        cat "$last"; rm -f "$last"
+        ;;
+      free)
+        if [ "${TOKENWISE_ALLOW_FREE:-0}" != "1" ]; then
+          echo "ERROR: the free worker is opt-in. Free-tier APIs may use prompts for training, so never send private code or secrets. To allow it: export TOKENWISE_ALLOW_FREE=1" >&2; exit 3
+        fi
+        free_provider || { echo "ERROR: no free provider: set OPENROUTER_API_KEY or GROQ_API_KEY" >&2; exit 2; }
+        has curl || { echo "ERROR: curl not found" >&2; exit 2; }
+        hdr="$(mktemp)"; chmod 600 "$hdr"; printf 'Authorization: Bearer %s\n' "$FREE_KEY" >"$hdr"
+        m="${MODEL:-${TOKENWISE_FREE_MODEL:-}}"
+        if [ -z "$m" ]; then
+          m="$(curl -sS --max-time 30 -H @"$hdr" "$FREE_BASE/models" | python3 -c '
+import json, re, sys
+name = sys.argv[1]
+d = json.load(sys.stdin).get("data", [])
+if name == "openrouter":
+    d = [x for x in d if (x.get("pricing", {}).get("prompt") == "0" and x.get("pricing", {}).get("completion") == "0") or str(x.get("id", "")).endswith(":free")]
+    pr = [x for x in d if re.search(r"gpt-oss|qwen|deepseek|llama", x["id"], re.I)] or d
+    pr.sort(key=lambda x: -(x.get("context_length") or 0))
+else:
+    pr = [x for x in d if re.search(r"gpt-oss|llama|qwen", x["id"], re.I)] or d
+print(pr[0]["id"] if pr else "")
+' "$FREE_NAME" 2>/dev/null)"
+        fi
+        [ -n "$m" ] || { rm -f "$hdr"; echo "ERROR: no free model found on $FREE_NAME; set TOKENWISE_FREE_MODEL" >&2; exit 2; }
+        echo "free model: $m ($FREE_NAME)" >&2
+        body="$(python3 -c '
+import json, sys
+print(json.dumps({"model": sys.argv[1], "stream": False, "messages": [
+ {"role": "system", "content": "You are a careful read-only assistant. Answer the task concisely. You cannot see any files except what is in the task."},
+ {"role": "user", "content": sys.argv[2]}]}))
+' "$m" "$prompt")"
+        resp="$(curl -sS --max-time 120 -H @"$hdr" -H "Content-Type: application/json" -d "$body" "$FREE_BASE/chat/completions")"; rc=$?
+        rm -f "$hdr"
+        [ $rc -eq 0 ] || { echo "ERROR: request failed (curl exit $rc)" >&2; exit 1; }
+        printf '%s' "$resp" | python3 -c '
+import json, sys
+try:
+    d = json.load(sys.stdin)
+except Exception:
+    print("ERROR: unreadable response", file=sys.stderr); sys.exit(1)
+if "choices" in d and d["choices"]:
+    print(d["choices"][0]["message"]["content"])
+else:
+    e = d.get("error", d)
+    msg = e.get("message", e) if isinstance(e, dict) else e
+    print("ERROR: free API: " + str(msg)[:200] + (" (rate limit?)" if "rate" in str(msg).lower() else ""), file=sys.stderr); sys.exit(1)
+'
+        ;;
       *) echo "unknown worker: $who" >&2; exit 2 ;;
     esac
     ;;
 
   *)
-    sed -n '2,18p' "$0"; exit 2 ;;
+    sed -n '2,22p' "$0"; exit 2 ;;
 esac
