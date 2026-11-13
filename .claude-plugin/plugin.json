@@ -1,7 +1,9 @@
 {
-  "name": "model-router",
-  "version": "0.1.0",
-  "description": "Routes each piece of work to Haiku, Sonnet or Opus (inline or via subagents) so Claude Code usage limits last longer.",
+  "name": "tokenwise",
+  "version": "0.2.0",
+  "description": "Make your Claude Code limits last longer: picks the right model (Haiku, Sonnet, Opus) and reasoning effort for every piece of work, and delegates to cheaper subagents only when it pays off.",
   "license": "MIT",
-  "keywords": ["model", "routing", "subagents", "usage", "limits", "haiku", "sonnet", "opus"]
+  "homepage": "https://github.com/OnurSamett/tokenwise",
+  "repository": "https://github.com/OnurSamett/tokenwise",
+  "keywords": ["claude-code", "usage-limits", "model-routing", "reasoning-effort", "subagents", "haiku", "sonnet", "opus", "token-saving"]
 }

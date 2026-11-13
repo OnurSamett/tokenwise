@@ -1,52 +1,144 @@
-# model-router
+# 🪙 tokenwise
 
-A Claude Code skill + three subagents that route each piece of work to the right model — **Haiku**, **Sonnet** or **Opus** — so your usage limits last longer without making the work worse.
+**Make your Claude Code limits last longer — without making the work worse.**
 
-*Türkçe özet aşağıda.*
+tokenwise is a Claude Code skill + three subagents that pick the right **model** (Haiku, Sonnet, Opus) *and* the right **reasoning effort** (low → xhigh) for every piece of work. Grepping a repo doesn't need Opus. Debugging a race condition does. tokenwise makes that call for you.
 
-## What it does
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+![Claude Code](https://img.shields.io/badge/Claude%20Code-skill%20%2B%20plugin-orange)
+![Models](https://img.shields.io/badge/models-Haiku%20%7C%20Sonnet%20%7C%20Opus-blue)
 
-- **Classifies work** into Light / Standard / Heavy tiers and picks the model and the reasoning effort **independently** — e.g. Opus/low for a quick design check, Sonnet/high for a big but routine refactor.
-- **Delegates** self-contained pieces to cheaper subagents only when that actually saves tokens (subagents start cold, so tiny tasks stay inline).
-- **Suggests** switching the main session's model when a long stretch of simpler work is ahead — never silently.
-- Adds a one-line routing summary to replies, e.g. `Model routing: haiku/low (search), opus/low (quick design check), sonnet/high (6-file refactor); main: opus/medium.`
+*🇹🇷 Türkçe açıklama aşağıda.*
 
-| Agent | Model (default effort) | Used for |
-|-------|-------|----------|
-| `router-scout` | Haiku (low) | search, grep, reading/summarizing logs and big files (read-only) |
-| `router-builder` | Sonnet (medium) | implementing from a plan, tests, medium refactors, known-cause bug fixes |
-| `router-architect` | Opus (high) | design decisions, unknown-cause debugging, security, final review |
+---
+
+## Why
+
+If you're on a Claude plan, you've probably hit the usage limit in the middle of something important. A big part of that usage goes to work that never needed the most expensive model: searching files, reading logs, writing boilerplate, running tests.
+
+tokenwise splits the work:
+
+- 🔍 **Mechanical work** (search, logs, boilerplate) → **Haiku**, low effort
+- 🛠️ **Routine coding** (features from a plan, tests, refactors) → **Sonnet**, effort by size
+- 🧠 **Hard thinking** (architecture, unknown bugs, security) → **Opus**, effort by risk
+
+And it **doesn't over-delegate**: subagents start cold and re-read context, so small tasks stay in the main session.
+
+## How it decides
+
+Two independent questions for every piece of work:
+
+```
+            ┌───────────────────────────────┐
+  task ───▶ │ 1. What kind of intelligence? │ ──▶  haiku │ sonnet │ opus
+            └───────────────────────────────┘
+            ┌───────────────────────────────┐
+            │ 2. How long should it think?  │ ──▶  low │ medium │ high │ xhigh
+            └───────────────────────────────┘
+                 ▲ steps · ambiguity · prior failure · cost of a mistake
+```
+
+**Effort** goes up one step for each signal present:
+
+| Signal | Question |
+|--------|----------|
+| Steps | How many files/parts interact? |
+| Ambiguity | Is the answer clear, or must it be investigated? |
+| Prior failure | Did an earlier attempt fail? |
+| Cost of a mistake | Is a wrong answer hard to undo? |
+
+So **Opus/low** is a real option (a quick design question: needs judgment, not long thinking), and so is **Sonnet/high** (a big but routine refactor).
+
+### Cheat sheet
+
+| | `low` | `medium` | `high` |
+|---|---|---|---|
+| **Haiku** | find files, grep, run tests | read a long log, find the error | — move to Sonnet |
+| **Sonnet** | small single-file fix | feature from a plan, tests | 5+ file refactor, failed once |
+| **Opus** | quick design check, tiny diff review | pick an architecture, PR review | unknown bug, system design |
+
+~50 more examples by category (search, coding, tests, debugging, review, design, docs, SQL, DevOps) live in [`effort-guide.md`](skills/tokenwise/references/effort-guide.md).
+
+### Escalation ladder
+
+When something fails, tokenwise climbs **effort before model**:
+
+```
+haiku/low → haiku/medium → sonnet/medium → sonnet/high → opus/high → opus/xhigh
+```
+
+`max` is never used unless you ask for it.
+
+## What you'll see
+
+At the end of a turn where work was delegated, one line:
+
+```
+Model routing: haiku/low (search), opus/low (quick design check), sonnet/high (6-file refactor); main: opus/medium.
+```
+
+And when a long stretch of simple work is ahead, a **suggestion** (never a silent switch) to drop the main session to Sonnet or a lower effort.
+
+## What's inside
+
+| File | What it is |
+|------|------------|
+| `skills/tokenwise/SKILL.md` | The routing rules Claude follows |
+| `skills/tokenwise/references/effort-guide.md` | ~50 task → model/effort examples |
+| `agents/tokenwise-scout.md` | Haiku, read-only: search, logs, summaries |
+| `agents/tokenwise-builder.md` | Sonnet: implementation, tests, refactors |
+| `agents/tokenwise-architect.md` | Opus: design, hard bugs, reviews |
 
 ## Install
 
-**Option A — as a plugin (recommended):**
+**As a plugin (recommended):** run these inside Claude Code:
 
 ```
-/plugin marketplace add OnurSamett/model-router
-/plugin install model-router@model-router
+/plugin marketplace add OnurSamett/tokenwise
+/plugin install tokenwise@tokenwise
 ```
 
-**Option B — copy into `~/.claude`:**
+**Or copy into `~/.claude` (works in every project):**
 
 ```bash
-git clone https://github.com/OnurSamett/model-router.git && ./model-router/install.sh
+git clone https://github.com/OnurSamett/tokenwise.git && ./tokenwise/install.sh
 ```
 
-Restart Claude Code sessions after installing.
+Start a new Claude Code session afterwards.
 
 ## Use
 
-It triggers automatically on multi-step tasks or when you mention limits/usage. You can also call it directly: `/model-router`.
+Nothing to do: it triggers on multi-step tasks and whenever you mention limits, usage or cost. To call it explicitly: `/tokenwise`.
 
-## Limits (honest ones)
+## FAQ
 
-- It's guidance for the model, not a hard enforcement layer.
-- It doesn't read your remaining quota; it routes by task type.
-- `fork` subagents always use the parent model, so the skill avoids them for saving.
+**Does it enforce limits?** No. It's guidance Claude follows, not a hard cap. It routes by task type, not by your remaining quota.
 
-## Türkçe özet
+**Won't subagents cost more?** They can, which is why tokenwise only delegates self-contained work that would take ~5+ tool calls or lots of reading. Small things stay inline.
 
-Bu skill, işleri türüne göre Haiku / Sonnet / Opus'a dağıtır: arama ve özetleme Haiku'ya, normal kodlama Sonnet'e, mimari ve zor hata ayıklama Opus'a gider. Küçük işler için alt ajan açmaz, çünkü alt ajan sıfırdan başlar ve o da token harcar. Ana oturumun modelini değiştirmeyi yalnızca önerir, sessizce değiştirmez. Kurulum için yukarıdaki iki seçenekten birini kullan.
+**Why not `fork` subagents?** Forks always run on the parent's model, so they don't save anything.
+
+**Will it change my model behind my back?** No. Main-session model/effort changes are only suggested; you decide.
+
+## Contributing
+
+Better examples for the effort guide, new agent roles, real-world numbers on savings: PRs and issues welcome.
+
+---
+
+## 🇹🇷 Türkçe
+
+**tokenwise, Claude Code limitlerini daha uzun süre idare etmeni sağlar, hem de işin kalitesini düşürmeden.**
+
+Her iş parçası için iki karar verir:
+- **Hangi model?** Arama ve log okuma Haiku'ya, normal kodlama Sonnet'e, mimari ve zor hatalar Opus'a gider.
+- **Ne kadar efor?** Adım sayısı, belirsizlik, önceki başarısızlık ve hatanın bedeline göre low, medium, high ya da xhigh seçilir.
+
+Örneğin Opus/low da mümkündür: kısa bir tasarım sorusu akıl ister ama uzun düşünme gerektirmez. Sonnet/high da mümkündür: sıradan ama çok dosyalı bir refactor.
+
+Küçük işler için alt ajan açmaz, çünkü alt ajan sıfırdan başlar ve o da token harcar. Ana oturumun modelini ya da eforunu kendi başına değiştirmez, yalnızca önerir.
+
+**Kurulum:** yukarıdaki iki yoldan biriyle kur, sonra yeni bir oturum aç.
 
 ## License
 

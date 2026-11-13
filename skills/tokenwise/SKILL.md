@@ -1,9 +1,9 @@
 ---
-name: model-router
-description: Use at the start of any multi-step task (coding, debugging, research, refactoring, reviews) to decide which Claude model should do each piece — Haiku, Sonnet or Opus — and whether to delegate it to a subagent, so usage limits last longer without losing quality. Also use when the user mentions limits, usage, cost, tokens, "save quota", "cheaper model", or asks which model to use.
+name: tokenwise
+description: Use at the start of any multi-step task (coding, debugging, research, refactoring, reviews) to decide which Claude model (Haiku, Sonnet or Opus) and which reasoning effort (low, medium, high, xhigh) each piece needs, and whether to delegate it to a subagent, so usage limits last longer without losing quality. Also use when the user mentions limits, usage, cost, tokens, "save quota", "cheaper model", or asks which model to use.
 ---
 
-# Model Router
+# tokenwise
 
 Goal: spend expensive model capacity (Opus) only where it changes the outcome, and push mechanical work to cheaper models (Haiku, Sonnet) — without making the work worse or slower.
 
@@ -33,11 +33,11 @@ A subagent starts cold: it re-reads files and re-derives context. That costs tok
 
 ## 3. How to delegate
 
-Use the Agent tool with an explicit `model` (or a `router-*` agent) **and** an explicit `effort` (see section 4):
+Use the Agent tool with an explicit `model` (or a `tokenwise-*` agent) **and** an explicit `effort` (see section 4):
 
-- Light → `subagent_type: "router-scout"` (Haiku, read-only) or `model: "haiku"`
-- Standard → `subagent_type: "router-builder"` (Sonnet) or `model: "sonnet"`
-- Heavy → `subagent_type: "router-architect"` (Opus) or `model: "opus"`
+- Light → `subagent_type: "tokenwise-scout"` (Haiku, read-only) or `model: "haiku"`
+- Standard → `subagent_type: "tokenwise-builder"` (Sonnet) or `model: "sonnet"`
+- Heavy → `subagent_type: "tokenwise-architect"` (Opus) or `model: "opus"`
 
 Notes:
 - A `fork` subagent always runs on the parent's model and ignores `model` — don't fork when the point is to save capacity.
@@ -67,10 +67,11 @@ Model and effort are **two independent decisions**. This skill explicitly author
 Opus at `low` is a valid choice: the question needs judgment but not long thinking. Sonnet at `high` is too: routine work with many moving parts.
 
 Rules:
-- **Always pass `effort` explicitly** on every Agent call, chosen from the signals above. The `effort` in the `router-*` agent files is only a fallback default.
+- **Always pass `effort` explicitly** on every Agent call, chosen from the signals above. The `effort` in the `tokenwise-*` agent files is only a fallback default.
 - Never use `max` unless the user explicitly asks — it is the most expensive level.
 - **Raise effort before raising the model:** a Sonnet task that fails at `medium` goes to Sonnet/`high` before it goes to Opus. Exception: if the failure shows the task needs judgment Sonnet lacks (design, unclear requirements), go straight to Opus.
 - Don't over-think cheap work: Haiku stays at `low`/`medium`.
+- For ~50 more task → model/effort examples (by category: search, coding, debugging, review, design, docs, data, DevOps), see `references/effort-guide.md`.
 
 **Main session effort:** same rule as the model below — suggest, don't switch silently. If a long stretch of simple work is ahead and the session runs at `high` or above, suggest dropping to `medium`/`low`; if hard work starts at `low`, suggest raising it. In the Claude desktop app this can be done with the session effort tool (user approves); in the CLI the user changes it themselves.
 
@@ -79,7 +80,7 @@ Rules:
 The main session's model is the biggest lever but switching it mid-session drops the prompt cache, so do it rarely:
 
 - If the main session runs on Opus and the remaining work is clearly Standard/Light for a long stretch (e.g. "now implement these 10 straightforward screens"), **suggest** switching the session to Sonnet — say why in one line and let the user decide. In the Claude desktop app this can be done with the session model tool (user approves); in the CLI the user runs `/model sonnet`.
-- If the session runs on Sonnet/Haiku and you hit Heavy work, either delegate that piece to `router-architect` or suggest switching up.
+- If the session runs on Sonnet/Haiku and you hit Heavy work, either delegate that piece to `tokenwise-architect` or suggest switching up.
 - Never switch the main model silently, and never switch back and forth for small pieces.
 
 ## 6. Report briefly

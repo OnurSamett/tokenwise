@@ -1,5 +1,5 @@
 ---
-name: router-builder
+name: tokenwise-builder
 description: Balanced implementer (Sonnet). Use for implementing features from a clear plan, writing tests, medium refactors, fixing bugs whose cause is already known, and writing docs.
 model: sonnet
 effort: medium

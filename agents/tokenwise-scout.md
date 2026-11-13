@@ -1,5 +1,5 @@
 ---
-name: router-scout
+name: tokenwise-scout
 description: Fast, cheap read-only helper (Haiku). Use for finding files and symbols, grepping, listing usages, reading and summarizing logs or large files, and extracting facts. Returns a short summary, not file dumps.
 tools: Read, Grep, Glob, Bash
 model: haiku

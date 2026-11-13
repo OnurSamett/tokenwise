@@ -1,5 +1,5 @@
 ---
-name: router-architect
+name: tokenwise-architect
 description: Deep reasoner (Opus). Use for architecture and design decisions, ambiguous requirements, debugging unknown root causes, security-sensitive code, and final review of large or risky changes.
 model: opus
 effort: high
