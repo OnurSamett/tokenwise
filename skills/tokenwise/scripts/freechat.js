@@ -14,7 +14,7 @@ import { pathToFileURL } from "node:url";
 // `rank`: preferred model patterns, best first. Models not matching any pattern are kept as a last resort.
 const KNOWN = {
   nvidia: { env: "NVIDIA_API_KEY", base: "https://integrate.api.nvidia.com/v1",
-    rank: [/kimi-k2/i, /deepseek-v4/i, /glm-5/i, /nemotron-3-ultra/i, /mistral-large-4/i, /minimax-m3/i, /gpt-oss-120b/i, /nemotron-3-super/i, /qwen3/i, /gpt-oss-20b/i] },
+    rank: [/kimi-k3/i, /mistral-large-4/i, /deepseek-v4/i, /glm-5/i, /nemotron-3-ultra/i, /step-?5/i, /minimax-m3/i, /kimi-k2/i, /laguna/i, /gpt-oss-120b/i, /nemotron-3-super/i, /qwen3/i, /gpt-oss-20b/i] },
   openrouter: { env: "OPENROUTER_API_KEY", base: "https://openrouter.ai/api/v1", onlyFree: true,
     rank: [/kimi-k2/i, /deepseek/i, /glm/i, /qwen3.*coder/i, /gpt-oss-120b/i, /qwen/i, /llama/i] },
   groq: { env: "GROQ_API_KEY", base: "https://api.groq.com/openai/v1", rank: [/gpt-oss-120b/i, /kimi/i, /qwen/i, /llama-3\.3-70b|llama-4/i, /gpt-oss/i] },
