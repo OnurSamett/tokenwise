@@ -27,11 +27,15 @@ export function freeProviders() {
   const out = [];
   for (const name of order) {
     if (name === "custom") {
-      if (process.env.TOKENWISE_FREE_BASE && process.env.TOKENWISE_FREE_KEY) out.push({ name: "custom", base: process.env.TOKENWISE_FREE_BASE.replace(/\/$/, ""), key: process.env.TOKENWISE_FREE_KEY, rank: [] });
+      if (process.env.TOKENWISE_FREE_BASE && process.env.TOKENWISE_FREE_KEY && /^[\x21-\x7e]+$/.test(process.env.TOKENWISE_FREE_KEY)) out.push({ name: "custom", base: process.env.TOKENWISE_FREE_BASE.replace(/\/$/, ""), key: process.env.TOKENWISE_FREE_KEY, rank: [] });
       continue;
     }
     const k = KNOWN[name];
-    if (k && process.env[k.env]) out.push({ name, ...k, key: process.env[k.env] });
+    if (k && process.env[k.env]) {
+      // A key with spaces/newlines/control characters would end up inside an error message: refuse it instead.
+      if (!/^[\x21-\x7e]+$/.test(process.env[k.env])) { process.stderr.write(`${k.env} contains invalid characters; skipping ${name}\n`); continue; }
+      out.push({ name, ...k, key: process.env[k.env] });
+    }
   }
   return out;
 }
@@ -61,7 +65,10 @@ export async function pickModels(p, first = false) {
 }
 export const pickModel = async (p, first) => (await pickModels(p, first))[0];
 
-const out = (o) => process.stdout.write(JSON.stringify(o) + "\n");
+const KEYS = ["NVIDIA_API_KEY", "OPENROUTER_API_KEY", "GROQ_API_KEY", "MISTRAL_API_KEY", "TOKENWISE_FREE_KEY"].map((k) => process.env[k]).filter(Boolean)
+  // raw key, its JSON-escaped form, and every line fragment, so a malformed key can't leak through an error message
+  .flatMap((v) => [v, JSON.stringify(v).slice(1, -1), ...v.split(/[\r\n\t]+/)]).filter((v) => v.length > 6);
+const out = (o) => process.stdout.write(KEYS.reduce((s, k) => s.split(k).join("***"), JSON.stringify(o)) + "\n");
 async function readStdin() { let s = ""; for await (const c of process.stdin) s += c; return s.trim(); }
 
 async function ask(p, model, task) {
