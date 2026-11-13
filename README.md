@@ -2,13 +2,14 @@
 
 ![tokenwise: Right model. Right effort. Longer limits.](assets/tokenwise-cover.png)
 
-**Make your Claude Code limits last longer — without making the work worse.**
+**Make your Claude and ChatGPT limits last longer — without making the work worse.**
 
-tokenwise is a Claude Code skill + three subagents that pick the right **model** (Haiku, Sonnet, Opus) *and* the right **reasoning effort** (low → xhigh) for every piece of work. Grepping a repo doesn't need Opus. Debugging a race condition does. tokenwise makes that call for you.
+tokenwise is a Claude Code skill + three subagents that pick the right **model** (Claude Haiku, Sonnet, Opus, or ChatGPT Codex models via the Codex CLI) *and* the right **reasoning effort** (low → xhigh) for every piece of work. It spreads work across both your Claude and ChatGPT plans, and lets Claude generate images through Codex. Grepping a repo doesn't need Opus. Debugging a race condition does. tokenwise makes that call for you.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 ![Claude Code](https://img.shields.io/badge/Claude%20Code-skill%20%2B%20plugin-orange)
-![Models](https://img.shields.io/badge/models-Haiku%20%7C%20Sonnet%20%7C%20Opus-blue)
+![Claude](https://img.shields.io/badge/Claude-Haiku%20%7C%20Sonnet%20%7C%20Opus-blue)
+![ChatGPT Codex](https://img.shields.io/badge/ChatGPT%20Codex-Terra%20%7C%20Sol%20%7C%20images-green)
 
 *🇹🇷 Türkçe açıklama aşağıda.*
 
@@ -71,7 +72,7 @@ haiku/low → haiku/medium → sonnet/medium → sonnet/high → opus/high → o
 
 `max` is never used unless you ask for it.
 
-## 🤝 External workers: Codex & Gemini (optional)
+## 🤝 ChatGPT Codex & Gemini as extra workers (optional)
 
 Got the [OpenAI Codex CLI](https://github.com/openai/codex) or [Gemini CLI](https://github.com/google-gemini/gemini-cli) signed in? tokenwise can hand work to them, and that costs **zero Claude usage**:
 
@@ -140,6 +141,8 @@ Nothing to do: it triggers on multi-step tasks and whenever you mention limits, 
 
 **Why not `fork` subagents?** Forks always run on the parent's model, so they don't save anything.
 
+**Does it work with ultracode?** Yes. With `/effort ultracode` you've chosen maximum effort and automatic multi-agent orchestration, so tokenwise doesn't argue with that: it won't suggest lowering effort, but it still gives the purely mechanical worker pieces (search, log reading, boilerplate) to Haiku/Sonnet and sends images to Codex. Note: ultracode is expensive by design; tokenwise trims around it, it doesn't make it cheap.
+
 **Will it change my model behind my back?** No. Main-session model/effort changes are only suggested; you decide.
 
 ## Contributing
@@ -150,7 +153,7 @@ Better examples for the effort guide, new agent roles, real-world numbers on sav
 
 ## 🇹🇷 Türkçe
 
-**tokenwise, Claude Code limitlerini daha uzun süre idare etmeni sağlar, hem de işin kalitesini düşürmeden.**
+**tokenwise, Claude ve ChatGPT limitlerini daha uzun süre idare etmeni sağlar, hem de işin kalitesini düşürmeden.**
 
 Her iş parçası için iki karar verir:
 - **Hangi model?** Arama ve log okuma Haiku'ya, normal kodlama Sonnet'e, mimari ve zor hatalar Opus'a gider.

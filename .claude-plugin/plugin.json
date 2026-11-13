@@ -1,7 +1,7 @@
 {
   "name": "tokenwise",
-  "version": "0.3.0",
-  "description": "Make your Claude Code limits last longer: picks the right model (Haiku, Sonnet, Opus) and reasoning effort for every piece of work, and delegates to cheaper subagents only when it pays off.",
+  "version": "0.4.0",
+  "description": "Make your Claude and ChatGPT limits last longer: picks the right model (Haiku, Sonnet, Opus) and reasoning effort for every piece of work, and delegates to cheaper subagents only when it pays off.",
   "license": "MIT",
   "homepage": "https://github.com/OnurSamett/tokenwise",
   "repository": "https://github.com/OnurSamett/tokenwise",

@@ -122,7 +122,16 @@ scripts/external.sh ask <codex|gemini> "<prompt>" [-m M] [-e E] # read-only ques
 - Don't use external workers for work that depends on this conversation's context or needs many tool calls in the repo; that stays with Claude.
 - Name them in the routing line, e.g. `codex (cover image), gemini (doc summary)`.
 
-## 7. Report briefly
+## 7. When ultracode (or another max-effort mode) is on
+
+If the session runs with `/effort ultracode` (xhigh effort + automatic multi-agent orchestration) or the user picked `max`, the user has deliberately chosen depth over savings. Then:
+
+- **Don't fight it:** never suggest lowering the main session's model or effort, and don't refuse to orchestrate.
+- **Still route the workers:** when the orchestration spawns subagents, give purely mechanical pieces (search, log reading, listing usages, boilerplate, running tests) to `haiku`/`sonnet` at `low`/`medium`. Keep design, root-cause and review pieces on Opus at the orchestration's effort.
+- **External workers still apply:** images always go to Codex; second opinions on high-stakes decisions can go to `codex sol/high`.
+- Mention once, briefly, that ultracode is the most expensive mode, only if the user asks about limits.
+
+## 8. Report briefly
 
 When you delegated work in a turn, add one short line to your reply, e.g.:
 `Model routing: haiku/low (search), opus/low (quick design check), sonnet/high (6-file refactor), codex (OG image); main: opus/medium.`
