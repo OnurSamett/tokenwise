@@ -7,7 +7,7 @@
 #   external.sh image <out.png> "<prompt>"              [-m luna|terra|sol] [-e low|medium|high]
 #   external.sh ask <codex|gemini|claude> "<prompt>"    [-m MODEL] [-e low|medium|high|xhigh]
 #   external.sh ask local "<prompt>"                    [-m MODEL]   # Ollama via Codex CLI --oss (default gpt-oss:20b, TOKENWISE_LOCAL_MODEL); free, unlimited, full agent
-#   external.sh ask free  "<prompt>"                    [-m MODEL]   # OpenRouter :free / Groq (OPENROUTER_API_KEY or GROQ_API_KEY); read-only text,
+#   external.sh ask free  "<prompt>"                    [-m MODEL]   # NVIDIA / OpenRouter :free / Groq / Mistral (first key set); read-only text,
 #                                                                    # opt-in: TOKENWISE_ALLOW_FREE=1 (free tiers may train on prompts); TOKENWISE_FREE_MODEL
 #     codex models: luna|terra|sol|astra   claude models: haiku|sonnet|opus
 #     gemini (via Antigravity): hydrogen (default) | argon (frontier) | flash (older), or any -m name with Gemini CLI + API key
@@ -107,8 +107,12 @@ local_problem() {  # prints what is missing (empty if ready)
 
 # Free-tier API fallback (OpenAI-compatible). Sets FREE_NAME / FREE_BASE / FREE_KEY.
 free_provider() {
-  if [ -n "${OPENROUTER_API_KEY:-}" ]; then FREE_NAME=openrouter; FREE_BASE="https://openrouter.ai/api/v1"; FREE_KEY="$OPENROUTER_API_KEY"
+  # First configured provider wins: NVIDIA (build.nvidia.com), OpenRouter :free, Groq, Mistral, or a custom endpoint.
+  if [ -n "${NVIDIA_API_KEY:-}" ]; then FREE_NAME=nvidia; FREE_BASE="https://integrate.api.nvidia.com/v1"; FREE_KEY="$NVIDIA_API_KEY"
+  elif [ -n "${OPENROUTER_API_KEY:-}" ]; then FREE_NAME=openrouter; FREE_BASE="https://openrouter.ai/api/v1"; FREE_KEY="$OPENROUTER_API_KEY"
   elif [ -n "${GROQ_API_KEY:-}" ]; then FREE_NAME=groq; FREE_BASE="https://api.groq.com/openai/v1"; FREE_KEY="$GROQ_API_KEY"
+  elif [ -n "${MISTRAL_API_KEY:-}" ]; then FREE_NAME=mistral; FREE_BASE="https://api.mistral.ai/v1"; FREE_KEY="$MISTRAL_API_KEY"
+  elif [ -n "${TOKENWISE_FREE_BASE:-}" ] && [ -n "${TOKENWISE_FREE_KEY:-}" ]; then FREE_NAME=custom; FREE_BASE="${TOKENWISE_FREE_BASE%/}"; FREE_KEY="$TOKENWISE_FREE_KEY"
   else return 1; fi
 }
 
@@ -132,7 +136,7 @@ case "$cmd" in
     lp="$(local_problem)"
     if [ -z "$lp" ]; then echo "local: ready (ollama, model $(local_model))"; else echo "local: $lp"; fi
     if free_provider; then echo "free: ready via $FREE_NAME (opt-in: $( [ "${TOKENWISE_ALLOW_FREE:-0}" = 1 ] && echo on || echo off ))";
-    else echo "free: not configured -> export OPENROUTER_API_KEY=... or GROQ_API_KEY=... (and TOKENWISE_ALLOW_FREE=1 to opt in)"; fi
+    else echo "free: not configured -> export NVIDIA_API_KEY=... (build.nvidia.com) or OPENROUTER_API_KEY / GROQ_API_KEY / MISTRAL_API_KEY, plus TOKENWISE_ALLOW_FREE=1 to opt in"; fi
     ;;
 
   image)
@@ -193,7 +197,7 @@ case "$cmd" in
         if [ "${TOKENWISE_ALLOW_FREE:-0}" != "1" ]; then
           echo "ERROR: the free worker is opt-in. Free-tier APIs may use prompts for training, so never send private code or secrets. To allow it: export TOKENWISE_ALLOW_FREE=1" >&2; exit 3
         fi
-        free_provider || { echo "ERROR: no free provider: set OPENROUTER_API_KEY or GROQ_API_KEY" >&2; exit 2; }
+        free_provider || { echo "ERROR: no free provider: set NVIDIA_API_KEY, OPENROUTER_API_KEY, GROQ_API_KEY or MISTRAL_API_KEY" >&2; exit 2; }
         has curl || { echo "ERROR: curl not found" >&2; exit 2; }
         hdr="$(mktemp)"; chmod 600 "$hdr"; printf 'Authorization: Bearer %s\n' "$FREE_KEY" >"$hdr"
         m="${MODEL:-${TOKENWISE_FREE_MODEL:-}}"
@@ -204,11 +208,20 @@ name = sys.argv[1]
 d = json.load(sys.stdin).get("data", [])
 if name == "openrouter":
     d = [x for x in d if (x.get("pricing", {}).get("prompt") == "0" and x.get("pricing", {}).get("completion") == "0") or str(x.get("id", "")).endswith(":free")]
-    pr = [x for x in d if re.search(r"gpt-oss|qwen|deepseek|llama", x["id"], re.I)] or d
-    pr.sort(key=lambda x: -(x.get("context_length") or 0))
-else:
-    pr = [x for x in d if re.search(r"gpt-oss|llama|qwen", x["id"], re.I)] or d
-print(pr[0]["id"] if pr else "")
+rank = {
+    "nvidia": [r"kimi-k2", r"deepseek-v4", r"glm-5", r"nemotron-3-ultra", r"mistral-large-4", r"minimax-m3", r"gpt-oss-120b", r"nemotron-3-super", r"qwen3", r"gpt-oss-20b"],
+    "openrouter": [r"kimi-k2", r"deepseek", r"glm", r"qwen3.*coder", r"gpt-oss-120b", r"qwen", r"llama"],
+    "groq": [r"gpt-oss-120b", r"kimi", r"qwen", r"llama-3\.3-70b|llama-4", r"gpt-oss"],
+    "mistral": [r"mistral-large", r"mistral-medium", r"devstral|codestral"],
+}.get(name, [])
+ids = [str(x.get("id", "")) for x in d]
+ids = [i for i in ids if not re.search(r"embed|rerank|guard|safety|vision|-vl\b|-vl-|vlm|tts|whisper|asr|ocr|parse|reward", i, re.I)]
+def score(i):
+    for n, pat in enumerate(rank):
+        if re.search(pat, i, re.I): return n
+    return len(rank)
+ids.sort(key=score)
+print(ids[0] if ids else "")
 ' "$FREE_NAME" 2>/dev/null)"
         fi
         [ -n "$m" ] || { rm -f "$hdr"; echo "ERROR: no free model found on $FREE_NAME; set TOKENWISE_FREE_MODEL" >&2; exit 2; }
