@@ -15,9 +15,9 @@ If the whole request fits in about 10 tool calls, or has no self-contained piece
 
 | Tier | Codex | Claude | Gemini |
 |------|-------|--------|--------|
-| Light | `terra` (`luna` only for trivial text) | `haiku` | `flash` |
-| Standard | `sol` | `sonnet` | `argon` |
-| Heavy | `sol` at high, `astra` **only if the user opted in** | `opus` | `hydrogen` |
+| Light | `terra` (`luna` only for trivial text) | `haiku` | `hydrogen` low |
+| Standard | `sol` | `sonnet` | `hydrogen` medium |
+| Heavy | `sol` at high, `astra` **only if the user opted in** | `opus` | `argon` |
 
 Light = find/list/count, read and summarize many files or logs, boilerplate. Standard = implement from a clear spec, tests, mechanical multi-file edits, known-cause fixes. Heavy = design decisions, unknown root cause, security/data integrity, risky reviews.
 

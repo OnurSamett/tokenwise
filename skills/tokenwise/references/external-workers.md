@@ -25,7 +25,7 @@ scripts/external.sh ask <codex|gemini> "<prompt>" [-m M] [-e E] # read-only ques
 - Same effort signals as in SKILL.md. `max`/`ultra` are refused by the script.
 - Never pick `astra` on your own, even for hard problems: use `sol/high` or Claude Opus instead.
 
-**Gemini models (via Google Antigravity, using the user's Google account):** `flash` (fast, cheap: summaries, mechanical text work, default), `argon` (routine code, drafts), `hydrogen` (strongest: hard second opinions). Effort is part of the model id; the script picks e.g. `gemini-3.8-flash-low` from `-m flash -e low`. Antigravity is found inside Gemini.app on macOS or as `agy` on PATH; without it, Gemini CLI needs `GEMINI_API_KEY`.
+**Gemini models (via Google Antigravity, using the user's Google account):** `hydrogen` (fast, default: summaries, drafts, routine code), `argon` (frontier: hard problems and second opinions); `flash` is the older fast model. Effort is part of the model id; the script picks e.g. `gemini-4-hydrogen-low` from `-m hydrogen -e low`. Antigravity is found inside Gemini.app on macOS or as `agy` on PATH; without it, Gemini CLI needs `GEMINI_API_KEY`.
 
 **When to use them:**
 - **Images (always Codex):** whenever the task needs an image: app icons, banners, social preview / OG images, illustrations, placeholder art, mockup visuals. Write a concrete prompt (subject, style, colors, layout, exact text to render, aspect ratio). Then open the saved file with Read to check it, and regenerate once with a sharper prompt if it's off. Takes ~30–60 s.
