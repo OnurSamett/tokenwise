@@ -88,7 +88,8 @@ Safety rails: workers run read-only or in an isolated temp folder, never get sec
 
 ```bash
 npm install -g @openai/codex && codex login           # images + second opinions
-npm install -g @google/gemini-cli && export GEMINI_API_KEY=...   # key from aistudio.google.com (Google sign-in no longer works for individuals)
+agy   # Gemini via Google Antigravity (in Gemini.app on macOS): run once to sign in with Google
+# or: npm install -g @google/gemini-cli && export GEMINI_API_KEY=...   (Gemini CLI's own Google sign-in no longer works for individuals)
 ```
 
 Both are optional; tokenwise works fine without them.

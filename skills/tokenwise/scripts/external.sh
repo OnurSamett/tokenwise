@@ -6,7 +6,8 @@
 #   external.sh check
 #   external.sh image <out.png> "<prompt>"              [-m luna|terra|sol] [-e low|medium|high]
 #   external.sh ask <codex|gemini|claude> "<prompt>"    [-m MODEL] [-e low|medium|high|xhigh]
-#     codex models: luna|terra|sol|astra   claude models: haiku|sonnet|opus   gemini: any -m name
+#     codex models: luna|terra|sol|astra   claude models: haiku|sonnet|opus
+#     gemini (via Antigravity): flash|argon|hydrogen, or any -m name with Gemini CLI + API key
 #
 # Codex model families, cheapest first: luna < terra < sol < astra.
 #   Defaults: ask -> sol/medium, image -> terra/medium.
@@ -23,7 +24,23 @@ has() { command -v "$1" >/dev/null 2>&1; }
 codex_ready() { has codex && codex login status 2>&1 | grep -qi "logged in"; }
 # Google-account sign-in no longer works for individuals in Gemini CLI (IneligibleTierError),
 # so only an API key (or Vertex AI via GOOGLE_API_KEY / GOOGLE_CLOUD_PROJECT) counts as ready.
+# Google Antigravity CLI: runs Gemini with a personal Google account (ships inside Gemini.app on macOS).
+agy_bin() {
+  for p in "${TOKENWISE_AGY:-}" /Applications/Gemini.app/Contents/Helpers/agy /Applications/Antigravity.app/Contents/Helpers/agy; do
+    [ -n "$p" ] && [ -x "$p" ] && { echo "$p"; return 0; }
+  done
+  command -v agy 2>/dev/null
+}
+agy_ready() { local a; a="$(agy_bin)" && [ -n "$a" ] && "$a" models >/dev/null 2>&1; }
+# Pick an Antigravity model id: family (flash|argon|hydrogen) + effort, e.g. gemini-3.8-flash-low.
+agy_model() {
+  local fam="${1:-flash}" eff="${2:-medium}" a; a="$(agy_bin)"
+  "$a" models 2>/dev/null | cut -f1 | grep "^gemini.*-${fam}-" | grep -m1 -- "-${eff}\$" \
+    || "$a" models 2>/dev/null | cut -f1 | grep -m1 "^gemini.*-${fam}-"
+}
+
 gemini_ready() {
+  agy_ready && return 0
   has gemini || return 1
   [ -n "${GEMINI_API_KEY:-}" ] || [ -n "${GOOGLE_API_KEY:-}" ] || [ -n "${GOOGLE_GENAI_USE_VERTEXAI:-}" ]
 }
@@ -85,7 +102,8 @@ case "$cmd" in
       echo "codex: ready (images: yes) — models: luna=$(codex_slug luna) terra=$(codex_slug terra) sol=$(codex_slug sol) astra=$(codex_slug astra) [astra $( [ "${TOKENWISE_CODEX_ASTRA:-0}" = 1 ] && echo allowed || echo blocked )]"
     elif has codex; then echo "codex: installed, NOT signed in -> user runs: codex login";
     else echo "codex: not installed -> npm install -g @openai/codex"; fi
-    if gemini_ready; then echo "gemini: ready (images: no)";
+    if agy_ready; then echo "gemini: ready via Antigravity (models: flash, argon, hydrogen)";
+    elif gemini_ready; then echo "gemini: ready via Gemini CLI + API key";
     elif has gemini; then echo "gemini: installed, needs an API key -> get one at aistudio.google.com, then: export GEMINI_API_KEY=... (Google sign-in no longer works for individuals)";
     else echo "gemini: not installed -> npm install -g @google/gemini-cli"; fi
     if claude_ready; then echo "claude: ready (models: haiku, sonnet, opus)";
@@ -122,6 +140,13 @@ case "$cmd" in
         cat "$last"; rm -f "$last"
         ;;
       gemini)
+        if agy_ready; then
+          m="$(agy_model "${MODEL:-${TOKENWISE_GEMINI_MODEL:-flash}}" "${EFFORT:-medium}")"
+          [ -n "$m" ] || { echo "ERROR: no Antigravity Gemini model for '${MODEL:-flash}'" >&2; exit 2; }
+          echo "gemini model: $m (Antigravity)" >&2
+          "$(agy_bin)" -p "$prompt" --model "$m" --mode plan --print-timeout 0s 2>/dev/null
+          exit $?
+        fi
         gemini_ready || { echo "ERROR: gemini not ready. Run: $0 check" >&2; exit 2; }
         if [ -n "$MODEL" ]; then gemini --skip-trust --approval-mode plan -m "$MODEL" -p "$prompt" 2>/dev/null; else gemini --skip-trust --approval-mode plan -p "$prompt" 2>/dev/null; fi
         ;;
