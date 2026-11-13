@@ -99,12 +99,14 @@ scripts/external.sh ask <codex|gemini> "<prompt>" [-m M] [-e E] # read-only ques
 
 | Family | Like | Use for | Default effort |
 |--------|------|---------|----------------|
-| `luna` | Haiku | images, summaries, translations, quick questions (**default**) | `low` |
-| `terra` | Sonnet-lite | drafts, docs, test data, simple code explanations | `low`/`medium` |
-| `sol` | Sonnet/Opus | second opinions on code or design, tricky explanations | `medium`/`high` |
+| `luna` | Haiku | only when explicitly chosen (`-m luna`); trivial text tasks, e.g. translating a sentence | `low` |
+| `terra` | Sonnet-lite | images (**default for images**), drafts, docs, test data | `medium` |
+| `sol` | Sonnet/Opus | **default for ask**: second opinions on code/design, explanations, summaries | `medium` (`high` for hard ones) |
 | `astra` | above Opus | **blocked by default**: burns ChatGPT limits very fast. Only if the user says they're on a high-limit plan (then they set `TOKENWISE_CODEX_ASTRA=1`) | `medium` |
 
-- Start at `luna/low`; images almost never need more (the image model does the drawing, the chat model only writes the call).
+- Defaults: `ask` → `sol/medium`, `image` → `terra/medium`. Use `-e low` for clearly mechanical asks, `-e high` for hard second opinions. Users can override defaults with TOKENWISE_CODEX_MODEL / TOKENWISE_CODEX_IMAGE_MODEL / TOKENWISE_CODEX_EFFORT.
+- Why medium: a public test of GPT-6.1 Terra in Codex found medium as accurate as high and no more expensive than low (https://nerdschalk.com/gpt-6-1-terra-codex-reasoning-effort/).
+- Luna is too weak to be a default; use it only for trivial things via `-m luna`.
 - Same effort signals as section 4. `max`/`ultra` are refused by the script.
 - Never pick `astra` on your own, even for hard problems: use `sol/high` or Claude Opus instead.
 

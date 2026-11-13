@@ -8,7 +8,8 @@
 #   external.sh ask <codex|gemini> "<prompt>"           [-m luna|terra|sol|astra] [-e low|medium|high|xhigh]
 #
 # Codex model families, cheapest first: luna < terra < sol < astra.
-#   Defaults: ask -> luna/low, image -> luna/low.
+#   Defaults: ask -> sol/medium, image -> terra/medium.
+#   Override: TOKENWISE_CODEX_MODEL / TOKENWISE_CODEX_IMAGE_MODEL / TOKENWISE_CODEX_EFFORT.
 #   astra burns ChatGPT limits very fast; it is BLOCKED unless TOKENWISE_CODEX_ASTRA=1
 #   (set it only if you are on a high-limit plan, e.g. Pro).
 #
@@ -56,7 +57,8 @@ parse_opts() {
 }
 
 codex_model_args() {
-  local fam="${MODEL:-luna}" eff="${EFFORT:-low}"
+  local default_fam="${1:-${TOKENWISE_CODEX_MODEL:-sol}}"
+  local fam="${MODEL:-$default_fam}" eff="${EFFORT:-${TOKENWISE_CODEX_EFFORT:-medium}}"
   if [[ "$fam" == *astra* ]] && [ "${TOKENWISE_CODEX_ASTRA:-0}" != "1" ]; then
     echo "ERROR: astra is blocked (it uses ChatGPT limits very fast). Use sol, or set TOKENWISE_CODEX_ASTRA=1 if your plan allows it." >&2
     exit 3
@@ -87,7 +89,7 @@ case "$cmd" in
     out="${1:?output path required}"; prompt="${2:?prompt required}"; shift 2
     parse_opts "$@"
     codex_ready || { echo "ERROR: codex not ready. Run: $0 check" >&2; exit 2; }
-    codex_model_args
+    codex_model_args "${TOKENWISE_CODEX_IMAGE_MODEL:-terra}"
     work="$(mktemp -d)"
     ( cd "$work" && codex exec --skip-git-repo-check --sandbox workspace-write "${CODEX_ARGS[@]}" \
         "Use your image generation tool to create ONE image and save it in the current directory as image.png. Image description: ${prompt}. After saving, reply only with: image.png" \
