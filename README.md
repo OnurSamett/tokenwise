@@ -1,5 +1,7 @@
 # 🪙 tokenwise
 
+![tokenwise: Right model. Right effort. Longer limits.](assets/tokenwise-cover.png)
+
 **Make your Claude Code limits last longer — without making the work worse.**
 
 tokenwise is a Claude Code skill + three subagents that pick the right **model** (Haiku, Sonnet, Opus) *and* the right **reasoning effort** (low → xhigh) for every piece of work. Grepping a repo doesn't need Opus. Debugging a race condition does. tokenwise makes that call for you.
@@ -69,12 +71,29 @@ haiku/low → haiku/medium → sonnet/medium → sonnet/high → opus/high → o
 
 `max` is never used unless you ask for it.
 
+## 🤝 External workers: Codex & Gemini (optional)
+
+Got the [OpenAI Codex CLI](https://github.com/openai/codex) or [Gemini CLI](https://github.com/google-gemini/gemini-cli) signed in? tokenwise can hand work to them, and that costs **zero Claude usage**:
+
+- 🎨 **Image generation** (Claude can't make images): icons, banners, OG/social images, illustrations. Codex generates the file and Claude checks it. *The cover image above was made this way.*
+- 🔎 **Second opinions** on high-stakes design or review decisions, from a different model family.
+- 📝 **Self-contained text work** (summaries, drafts, translations, test data) when your Claude limits are tight.
+
+Safety rails: workers run read-only or in an isolated temp folder, never get secrets, and their output is treated as untrusted and verified by Claude.
+
+```bash
+npm install -g @openai/codex && codex login           # images + second opinions
+npm install -g @google/gemini-cli && gemini           # pick "Sign in with Google"
+```
+
+Both are optional; tokenwise works fine without them.
+
 ## What you'll see
 
 At the end of a turn where work was delegated, one line:
 
 ```
-Model routing: haiku/low (search), opus/low (quick design check), sonnet/high (6-file refactor); main: opus/medium.
+Model routing: haiku/low (search), opus/low (quick design check), sonnet/high (6-file refactor), codex (OG image); main: opus/medium.
 ```
 
 And when a long stretch of simple work is ahead, a **suggestion** (never a silent switch) to drop the main session to Sonnet or a lower effort.
@@ -85,6 +104,7 @@ And when a long stretch of simple work is ahead, a **suggestion** (never a silen
 |------|------------|
 | `skills/tokenwise/SKILL.md` | The routing rules Claude follows |
 | `skills/tokenwise/references/effort-guide.md` | ~50 task → model/effort examples |
+| `skills/tokenwise/scripts/external.sh` | Codex/Gemini bridge: `check`, `image`, `ask` |
 | `agents/tokenwise-scout.md` | Haiku, read-only: search, logs, summaries |
 | `agents/tokenwise-builder.md` | Sonnet: implementation, tests, refactors |
 | `agents/tokenwise-architect.md` | Opus: design, hard bugs, reviews |
@@ -135,6 +155,8 @@ Her iş parçası için iki karar verir:
 - **Ne kadar efor?** Adım sayısı, belirsizlik, önceki başarısızlık ve hatanın bedeline göre low, medium, high ya da xhigh seçilir.
 
 Örneğin Opus/low da mümkündür: kısa bir tasarım sorusu akıl ister ama uzun düşünme gerektirmez. Sonnet/high da mümkündür: sıradan ama çok dosyalı bir refactor.
+
+Codex ya da Gemini CLI kuruluysa görsel üretimini (Claude görsel üretemez), ikinci görüş almayı ve bağımsız metin işlerini onlara devreder. Bunlar Claude limitinden hiç harcamaz.
 
 Küçük işler için alt ajan açmaz, çünkü alt ajan sıfırdan başlar ve o da token harcar. Ana oturumun modelini ya da eforunu kendi başına değiştirmez, yalnızca önerir.
 
