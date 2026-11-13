@@ -194,60 +194,25 @@ case "$cmd" in
         cat "$last"; rm -f "$last"
         ;;
       free)
-        if [ "${TOKENWISE_ALLOW_FREE:-0}" != "1" ]; then
-          echo "ERROR: the free worker is opt-in. Free-tier APIs may use prompts for training, so never send private code or secrets. To allow it: export TOKENWISE_ALLOW_FREE=1" >&2; exit 3
-        fi
+        [ "${TOKENWISE_ALLOW_FREE:-0}" = "1" ] || { echo "ERROR: free providers may use prompts for training; opt in with TOKENWISE_ALLOW_FREE=1" >&2; exit 3; }
         free_provider || { echo "ERROR: no free provider: set NVIDIA_API_KEY, OPENROUTER_API_KEY, GROQ_API_KEY or MISTRAL_API_KEY" >&2; exit 2; }
-        has curl || { echo "ERROR: curl not found" >&2; exit 2; }
-        hdr="$(mktemp)"; chmod 600 "$hdr"; printf 'Authorization: Bearer %s\n' "$FREE_KEY" >"$hdr"
-        m="${MODEL:-${TOKENWISE_FREE_MODEL:-}}"
-        if [ -z "$m" ]; then
-          m="$(curl -sS --max-time 30 -H @"$hdr" "$FREE_BASE/models" | python3 -c '
-import json, re, sys
-name = sys.argv[1]
-d = json.load(sys.stdin).get("data", [])
-if name == "openrouter":
-    d = [x for x in d if (x.get("pricing", {}).get("prompt") == "0" and x.get("pricing", {}).get("completion") == "0") or str(x.get("id", "")).endswith(":free")]
-rank = {
-    "nvidia": [r"kimi-k2", r"deepseek-v4", r"glm-5", r"nemotron-3-ultra", r"mistral-large-4", r"minimax-m3", r"gpt-oss-120b", r"nemotron-3-super", r"qwen3", r"gpt-oss-20b"],
-    "openrouter": [r"kimi-k2", r"deepseek", r"glm", r"qwen3.*coder", r"gpt-oss-120b", r"qwen", r"llama"],
-    "groq": [r"gpt-oss-120b", r"kimi", r"qwen", r"llama-3\.3-70b|llama-4", r"gpt-oss"],
-    "mistral": [r"mistral-large", r"mistral-medium", r"devstral|codestral"],
-}.get(name, [])
-ids = [str(x.get("id", "")) for x in d]
-ids = [i for i in ids if not re.search(r"embed|rerank|guard|safety|vision|-vl\b|-vl-|vlm|tts|whisper|asr|ocr|parse|reward", i, re.I)]
-def score(i):
-    for n, pat in enumerate(rank):
-        if re.search(pat, i, re.I): return n
-    return len(rank)
-ids.sort(key=score)
-print(ids[0] if ids else "")
-' "$FREE_NAME" 2>/dev/null)"
-        fi
-        [ -n "$m" ] || { rm -f "$hdr"; echo "ERROR: no free model found on $FREE_NAME; set TOKENWISE_FREE_MODEL" >&2; exit 2; }
-        echo "free model: $m ($FREE_NAME)" >&2
-        body="$(python3 -c '
+        has node || { echo "ERROR: node not found (needed for the free agent)" >&2; exit 2; }
+        # Read-only tool loop (list/read/search files in the current folder) on free hosted models.
+        [ -n "$MODEL" ] && export TOKENWISE_FREE_MODEL="$MODEL"
+        node "$(dirname "$0")/freeagent.js" "$prompt" | python3 -c '
 import json, sys
-print(json.dumps({"model": sys.argv[1], "stream": False, "messages": [
- {"role": "system", "content": "You are a careful read-only assistant. Answer the task concisely. You cannot see any files except what is in the task."},
- {"role": "user", "content": sys.argv[2]}]}))
-' "$m" "$prompt")"
-        resp="$(curl -sS --max-time 120 -H @"$hdr" -H "Content-Type: application/json" -d "$body" "$FREE_BASE/chat/completions")"; rc=$?
-        rm -f "$hdr"
-        [ $rc -eq 0 ] || { echo "ERROR: request failed (curl exit $rc)" >&2; exit 1; }
-        printf '%s' "$resp" | python3 -c '
-import json, sys
-try:
-    d = json.load(sys.stdin)
-except Exception:
-    print("ERROR: unreadable response", file=sys.stderr); sys.exit(1)
-if "choices" in d and d["choices"]:
-    print(d["choices"][0]["message"]["content"])
-else:
-    e = d.get("error", d)
-    msg = e.get("message", e) if isinstance(e, dict) else e
-    print("ERROR: free API: " + str(msg)[:200] + (" (rate limit?)" if "rate" in str(msg).lower() else ""), file=sys.stderr); sys.exit(1)
+ans, err = None, None
+for line in sys.stdin:
+    try: e = json.loads(line)
+    except Exception: continue
+    t = e.get("type")
+    if t == "free.init": print("free model: %s (%s)" % (e.get("model"), e.get("provider")), file=sys.stderr)
+    elif t == "free.message": ans = e.get("text", "")
+    elif t == "free.error": err = e.get("message", "error")
+if ans is not None: print(ans)
+else: print("ERROR: " + (err or "no answer"), file=sys.stderr); sys.exit(1)
 '
+        exit $?
         ;;
       *) echo "unknown worker: $who" >&2; exit 2 ;;
     esac

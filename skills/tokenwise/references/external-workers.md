@@ -39,6 +39,10 @@ scripts/external.sh ask <codex|gemini> "<prompt>" [-m M] [-e E] # read-only ques
 - Don't use external workers for work that depends on this conversation's context or needs many tool calls in the repo; that stays with Claude.
 - Name them in the routing line, e.g. `codex (cover image), gemini (doc summary)`.
 
+## Free hosted models as real workers
+
+`ask free` runs `scripts/freeagent.js`: a small tool loop on top of free OpenAI-compatible APIs (NVIDIA, OpenRouter, Groq, Mistral, custom). The free model can list, read and search files in the current folder before answering (read-only here; tokenwise studio also gives it edit and allowlisted test tools inside a worktree). Paths can't leave the folder; no shell. Opt in with `TOKENWISE_ALLOW_FREE=1`.
+
 ## When a plan runs out
 
 If a paid plan hits its usage limit, fall back in this order: **codex → gemini (Antigravity) → claude → local → free**.
