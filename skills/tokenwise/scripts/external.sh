@@ -5,7 +5,8 @@
 # Usage:
 #   external.sh check
 #   external.sh image <out.png> "<prompt>"              [-m luna|terra|sol] [-e low|medium|high]
-#   external.sh ask <codex|gemini> "<prompt>"           [-m luna|terra|sol|astra] [-e low|medium|high|xhigh]
+#   external.sh ask <codex|gemini|claude> "<prompt>"    [-m MODEL] [-e low|medium|high|xhigh]
+#     codex models: luna|terra|sol|astra   claude models: haiku|sonnet|opus   gemini: any -m name
 #
 # Codex model families, cheapest first: luna < terra < sol < astra.
 #   Defaults: ask -> sol/medium, image -> terra/medium.
@@ -72,6 +73,8 @@ codex_model_args() {
   echo "codex model: $slug / $eff" >&2
 }
 
+claude_ready() { has claude && claude auth status 2>/dev/null | grep -q '"loggedIn": true'; }
+
 cmd="${1:-}"; shift || true
 
 case "$cmd" in
@@ -83,6 +86,9 @@ case "$cmd" in
     if gemini_ready; then echo "gemini: ready (images: no)";
     elif has gemini; then echo "gemini: installed, NOT signed in -> user runs: gemini (choose 'Sign in with Google')";
     else echo "gemini: not installed -> npm install -g @google/gemini-cli"; fi
+    if claude_ready; then echo "claude: ready (models: haiku, sonnet, opus)";
+    elif has claude; then echo "claude: installed, NOT signed in -> user runs: claude auth login";
+    else echo "claude: not installed -> npm install -g @anthropic-ai/claude-code"; fi
     ;;
 
   image)
@@ -117,10 +123,17 @@ case "$cmd" in
         gemini_ready || { echo "ERROR: gemini not ready. Run: $0 check" >&2; exit 2; }
         if [ -n "$MODEL" ]; then gemini -m "$MODEL" -p "$prompt" 2>/dev/null; else gemini -p "$prompt" 2>/dev/null; fi
         ;;
+      claude)
+        claude_ready || { echo "ERROR: claude not ready. Run: $0 check" >&2; exit 2; }
+        m="${MODEL:-${TOKENWISE_CLAUDE_MODEL:-haiku}}"; e="${EFFORT:-${TOKENWISE_CLAUDE_EFFORT:-low}}"
+        if [ "$e" = "max" ]; then echo "ERROR: effort 'max' is not allowed from tokenwise; use up to xhigh." >&2; exit 3; fi
+        echo "claude model: $m / $e" >&2
+        claude -p "$prompt" --model "$m" --effort "$e" --permission-mode plan --output-format text 2>/dev/null
+        ;;
       *) echo "unknown worker: $who" >&2; exit 2 ;;
     esac
     ;;
 
   *)
-    sed -n '2,16p' "$0"; exit 2 ;;
+    sed -n '2,18p' "$0"; exit 2 ;;
 esac

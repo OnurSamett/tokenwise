@@ -11,6 +11,8 @@ tokenwise is a Claude Code skill + three subagents that pick the right **model**
 ![Claude](https://img.shields.io/badge/Claude-Haiku%20%7C%20Sonnet%20%7C%20Opus-blue)
 ![ChatGPT Codex](https://img.shields.io/badge/ChatGPT%20Codex-Terra%20%7C%20Sol%20%7C%20images-green)
 
+**Works in:** Claude Code · OpenAI Codex CLI · Google Gemini CLI. Install once, and every agent can hand work to the others.
+
 *🇹🇷 Türkçe açıklama aşağıda.*
 
 ---
@@ -108,26 +110,45 @@ And when a long stretch of simple work is ahead, a **suggestion** (never a silen
 | `skills/tokenwise/SKILL.md` | The routing rules Claude follows |
 | `skills/tokenwise/references/effort-guide.md` | ~50 task → model/effort examples |
 | `skills/tokenwise/scripts/external.sh` | Codex/Gemini bridge: `check`, `image`, `ask` |
+| `hosts/agents/SKILL.md` | The Codex CLI / Gemini CLI version of the skill |
 | `agents/tokenwise-scout.md` | Haiku, read-only: search, logs, summaries |
 | `agents/tokenwise-builder.md` | Sonnet: implementation, tests, refactors |
 | `agents/tokenwise-architect.md` | Opus: design, hard bugs, reviews |
 
 ## Install
 
-**As a plugin (recommended):** run these inside Claude Code:
+**Everything at once (Claude Code + Codex + Gemini, whichever you have):**
+
+```bash
+git clone https://github.com/OnurSamett/tokenwise.git && ./tokenwise/install.sh
+```
+
+- **Claude Code** → `~/.claude/skills/tokenwise` + 3 subagents
+- **Codex CLI** → `~/.codex/skills/tokenwise`
+- **Gemini CLI** → linked with `gemini skills link`
+
+Only some of them? `./tokenwise/install.sh codex gemini`.
+
+**Claude Code plugin only:** run these inside Claude Code:
 
 ```
 /plugin marketplace add OnurSamett/tokenwise
 /plugin install tokenwise@tokenwise
 ```
 
-**Or copy into `~/.claude` (works in every project):**
+Start a new session in each tool afterwards.
 
-```bash
-git clone https://github.com/OnurSamett/tokenwise.git && ./tokenwise/install.sh
-```
+### Cross-agent workers
 
-Start a new Claude Code session afterwards.
+Whichever agent you're in, tokenwise can hand self-contained work to the others through `scripts/external.sh`:
+
+| From \ To | Claude (`haiku`/`sonnet`/`opus`) | Codex (`terra`/`sol`) | Gemini |
+|---|---|---|---|
+| Claude Code | subagents | ✅ + images | ✅ |
+| Codex CLI | ✅ | cheaper Codex models | ✅ |
+| Gemini CLI | ✅ | ✅ + images | — |
+
+So when one plan's limit is getting tight, Light/Standard work can move to another plan you already pay for.
 
 ## Use
 
@@ -162,6 +183,8 @@ Her iş parçası için iki karar verir:
 Örneğin Opus/low da mümkündür: kısa bir tasarım sorusu akıl ister ama uzun düşünme gerektirmez. Sonnet/high da mümkündür: sıradan ama çok dosyalı bir refactor.
 
 Codex ya da Gemini CLI kuruluysa görsel üretimini (Claude görsel üretemez), ikinci görüş almayı ve bağımsız metin işlerini onlara devreder. Bunlar Claude limitinden hiç harcamaz.
+
+Claude Code, Codex CLI ve Gemini CLI'ın üçünde de çalışır: tek komutla hepsine kurulur ve her ajan diğerlerine iş devredebilir. Bir planın limiti daralınca işler zaten ödediğin diğer plana kayar.
 
 Küçük işler için alt ajan açmaz, çünkü alt ajan sıfırdan başlar ve o da token harcar. Ana oturumun modelini ya da eforunu kendi başına değiştirmez, yalnızca önerir.
 
