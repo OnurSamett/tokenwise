@@ -53,9 +53,10 @@ for cond in ("baseline", "tokenwise"):
     st = avg([r["usage"]["sonnet"]["tokens"] for r in rs])
     ht = avg([r["usage"]["haiku"]["tokens"] for r in rs])
     secs = avg([float(r["secs"]) for r in rs if r["secs"] != "?"])
-    checks = [sum(1 for k in ("tests_pass", "discount_once", "csv_ok", "readme") if r["verify"].get(k)) for r in rs]
+    checks = [sum(1 for v in r["verify"].values() if v is True) for r in rs]
+    nchecks = max((sum(1 for v in r["verify"].values() if isinstance(v, bool)) for r in rs), default=0)
     summary[cond] = (tot, oc)
-    print(f"| {cond} | {len(rs)} | {tot:.2f} | {oc:.2f} | {ot:,.0f} | {st:,.0f} | {ht:,.0f} | {secs:.0f} | {avg(checks):.1f}/4 |")
+    print(f"| {cond} | {len(rs)} | {tot:.2f} | {oc:.2f} | {ot:,.0f} | {st:,.0f} | {ht:,.0f} | {secs:.0f} | {avg(checks):.1f}/{nchecks} |")
 
 if "baseline" in summary and "tokenwise" in summary and summary["baseline"][0] > 0:
     b, t = summary["baseline"], summary["tokenwise"]

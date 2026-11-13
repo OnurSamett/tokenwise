@@ -1,12 +1,16 @@
 #!/usr/bin/env bash
 # tokenwise benchmark: same task, with and without tokenwise, headless Claude Code.
-# Usage: bench/run.sh [runs-per-condition=1] [model=opus]
+# Usage: bench/run.sh [runs-per-condition=1] [model=opus] [suite=small|large]
 # Needs: `claude` CLI signed in (claude auth login). Uses your Claude usage.
 set -uo pipefail
 HERE="$(cd "$(dirname "$0")" && pwd)"
-RUNS="${1:-1}"; MODEL="${2:-opus}"
-OUT="$HERE/results/$(date +%Y%m%d-%H%M%S)"; mkdir -p "$OUT"
-TASK="$(cat "$HERE/task.md")"
+RUNS="${1:-1}"; MODEL="${2:-opus}"; SUITE="${3:-small}"
+OUT="$HERE/results/$(date +%Y%m%d-%H%M%S)-$SUITE"; mkdir -p "$OUT"
+if [ "$SUITE" = large ]; then
+  TASK="$(cat "$HERE/large/task.md")"; VERIFY="$HERE/large/verify.py"
+else
+  TASK="$(cat "$HERE/task.md")"; VERIFY="$HERE/verify.py"
+fi
 CH="${CLAUDE_HOME:-$HOME/.claude}"
 STASH="$(mktemp -d)"
 
@@ -24,14 +28,15 @@ ALLOWED='Read Edit Write Glob Grep Agent Task Skill Bash(python3:*) Bash(ls:*) B
 
 run_one() {  # $1 = condition (baseline|tokenwise), $2 = index
   local cond="$1" i="$2" work; work="$(mktemp -d)/repo"
-  cp -R "$HERE/fixture" "$work"
+  if [ "$SUITE" = large ]; then python3 "$HERE/large/make_fixture.py" "$work" >/dev/null
+  else cp -R "$HERE/fixture" "$work"; fi
   [ "$cond" = baseline ] && hide_tokenwise
   local t0=$SECONDS
   ( cd "$work" && claude -p "$TASK" --model "$MODEL" --output-format json \
       --permission-mode acceptEdits --allowedTools $ALLOWED ) > "$OUT/$cond-$i.json" 2> "$OUT/$cond-$i.err"
   local dt=$((SECONDS - t0))
   [ "$cond" = baseline ] && restore_tokenwise
-  python3 "$HERE/verify.py" "$work" > "$OUT/$cond-$i.verify.json" 2>/dev/null || echo '{}' > "$OUT/$cond-$i.verify.json"
+  python3 "$VERIFY" "$work" > "$OUT/$cond-$i.verify.json" 2>/dev/null || echo '{}' > "$OUT/$cond-$i.verify.json"
   echo "$dt" > "$OUT/$cond-$i.secs"
   echo "  $cond #$i done in ${dt}s: $(cat "$OUT/$cond-$i.verify.json")"
 }
