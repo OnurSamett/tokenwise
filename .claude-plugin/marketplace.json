@@ -1,0 +1,11 @@
+{
+  "name": "model-router",
+  "owner": { "name": "model-router contributors" },
+  "plugins": [
+    {
+      "name": "model-router",
+      "source": "./",
+      "description": "Routes each piece of work to Haiku, Sonnet or Opus so usage limits last longer."
+    }
+  ]
+}

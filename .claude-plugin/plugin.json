@@ -1,0 +1,7 @@
+{
+  "name": "model-router",
+  "version": "0.1.0",
+  "description": "Routes each piece of work to Haiku, Sonnet or Opus (inline or via subagents) so Claude Code usage limits last longer.",
+  "license": "MIT",
+  "keywords": ["model", "routing", "subagents", "usage", "limits", "haiku", "sonnet", "opus"]
+}
