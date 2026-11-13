@@ -21,9 +21,11 @@ set -uo pipefail
 has() { command -v "$1" >/dev/null 2>&1; }
 
 codex_ready() { has codex && codex login status 2>&1 | grep -qi "logged in"; }
+# Google-account sign-in no longer works for individuals in Gemini CLI (IneligibleTierError),
+# so only an API key (or Vertex AI via GOOGLE_API_KEY / GOOGLE_CLOUD_PROJECT) counts as ready.
 gemini_ready() {
   has gemini || return 1
-  [ -n "${GEMINI_API_KEY:-}" ] || [ -n "${GOOGLE_API_KEY:-}" ] || [ -f "$HOME/.gemini/oauth_creds.json" ]
+  [ -n "${GEMINI_API_KEY:-}" ] || [ -n "${GOOGLE_API_KEY:-}" ] || [ -n "${GOOGLE_GENAI_USE_VERTEXAI:-}" ]
 }
 
 # Resolve a family alias (luna/terra/sol/astra) to the newest listed Codex model slug.
@@ -84,7 +86,7 @@ case "$cmd" in
     elif has codex; then echo "codex: installed, NOT signed in -> user runs: codex login";
     else echo "codex: not installed -> npm install -g @openai/codex"; fi
     if gemini_ready; then echo "gemini: ready (images: no)";
-    elif has gemini; then echo "gemini: installed, NOT signed in -> user runs: gemini (choose 'Sign in with Google')";
+    elif has gemini; then echo "gemini: installed, needs an API key -> get one at aistudio.google.com, then: export GEMINI_API_KEY=... (Google sign-in no longer works for individuals)";
     else echo "gemini: not installed -> npm install -g @google/gemini-cli"; fi
     if claude_ready; then echo "claude: ready (models: haiku, sonnet, opus)";
     elif has claude; then echo "claude: installed, NOT signed in -> user runs: claude auth login";
@@ -121,7 +123,7 @@ case "$cmd" in
         ;;
       gemini)
         gemini_ready || { echo "ERROR: gemini not ready. Run: $0 check" >&2; exit 2; }
-        if [ -n "$MODEL" ]; then gemini -m "$MODEL" -p "$prompt" 2>/dev/null; else gemini -p "$prompt" 2>/dev/null; fi
+        if [ -n "$MODEL" ]; then gemini --skip-trust --approval-mode plan -m "$MODEL" -p "$prompt" 2>/dev/null; else gemini --skip-trust --approval-mode plan -p "$prompt" 2>/dev/null; fi
         ;;
       claude)
         claude_ready || { echo "ERROR: claude not ready. Run: $0 check" >&2; exit 2; }
