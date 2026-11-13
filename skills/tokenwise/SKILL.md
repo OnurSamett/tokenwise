@@ -90,10 +90,23 @@ If the user has the OpenAI Codex CLI or Google Gemini CLI installed and signed i
 The helper lives next to this file: `scripts/external.sh` (use the absolute path from this skill's base directory).
 
 ```bash
-scripts/external.sh check                          # which workers are ready
-scripts/external.sh image <out.png> "<prompt>"     # generate an image via Codex, save to <out.png>
-scripts/external.sh ask <codex|gemini> "<prompt>"  # read-only question/task, prints the answer
+scripts/external.sh check                                      # which workers/models are ready
+scripts/external.sh image <out.png> "<prompt>" [-m M] [-e E]   # generate an image via Codex
+scripts/external.sh ask <codex|gemini> "<prompt>" [-m M] [-e E] # read-only question/task
 ```
+
+**Codex models: the same routing idea applies to the user's ChatGPT limits.** Families, cheapest first (the script resolves each to the newest version):
+
+| Family | Like | Use for | Default effort |
+|--------|------|---------|----------------|
+| `luna` | Haiku | images, summaries, translations, quick questions (**default**) | `low` |
+| `terra` | Sonnet-lite | drafts, docs, test data, simple code explanations | `low`/`medium` |
+| `sol` | Sonnet/Opus | second opinions on code or design, tricky explanations | `medium`/`high` |
+| `astra` | above Opus | **blocked by default**: burns ChatGPT limits very fast. Only if the user says they're on a high-limit plan (then they set `TOKENWISE_CODEX_ASTRA=1`) | `medium` |
+
+- Start at `luna/low`; images almost never need more (the image model does the drawing, the chat model only writes the call).
+- Same effort signals as section 4. `max`/`ultra` are refused by the script.
+- Never pick `astra` on your own, even for hard problems: use `sol/high` or Claude Opus instead.
 
 **When to use them:**
 - **Images (always Codex):** whenever the task needs an image: app icons, banners, social preview / OG images, illustrations, placeholder art, mockup visuals. Write a concrete prompt (subject, style, colors, layout, exact text to render, aspect ratio). Then open the saved file with Read to check it, and regenerate once with a sharper prompt if it's off. Takes ~30–60 s.

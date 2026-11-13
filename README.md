@@ -79,6 +79,8 @@ Got the [OpenAI Codex CLI](https://github.com/openai/codex) or [Gemini CLI](http
 - 🔎 **Second opinions** on high-stakes design or review decisions, from a different model family.
 - 📝 **Self-contained text work** (summaries, drafts, translations, test data) when your Claude limits are tight.
 
+Codex models are routed the same way, cheapest first: **luna** (default: images, summaries) → **terra** → **sol** (second opinions) → **astra**. Astra drains ChatGPT limits fast, so it's **blocked unless you opt in** with `TOKENWISE_CODEX_ASTRA=1` (e.g. on a Pro plan).
+
 Safety rails: workers run read-only or in an isolated temp folder, never get secrets, and their output is treated as untrusted and verified by Claude.
 
 ```bash

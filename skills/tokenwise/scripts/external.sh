@@ -3,9 +3,14 @@
 # so it doesn't consume Claude usage — and to do things Claude can't (image generation).
 #
 # Usage:
-#   external.sh check                         # which workers are installed + signed in
-#   external.sh image <out.png> "<prompt>"    # generate an image (Codex) and save it
-#   external.sh ask <codex|gemini> "<prompt>" # read-only question/task, prints the answer
+#   external.sh check
+#   external.sh image <out.png> "<prompt>"              [-m luna|terra|sol] [-e low|medium|high]
+#   external.sh ask <codex|gemini> "<prompt>"           [-m luna|terra|sol|astra] [-e low|medium|high|xhigh]
+#
+# Codex model families, cheapest first: luna < terra < sol < astra.
+#   Defaults: ask -> luna/low, image -> luna/low.
+#   astra burns ChatGPT limits very fast; it is BLOCKED unless TOKENWISE_CODEX_ASTRA=1
+#   (set it only if you are on a high-limit plan, e.g. Pro).
 #
 # Uses the user's own Codex (ChatGPT plan) / Gemini (Google account) sign-in.
 # This script never prints or stores API keys.
@@ -19,11 +24,58 @@ gemini_ready() {
   [ -n "${GEMINI_API_KEY:-}" ] || [ -n "${GOOGLE_API_KEY:-}" ] || [ -f "$HOME/.gemini/oauth_creds.json" ]
 }
 
+# Resolve a family alias (luna/terra/sol/astra) to the newest listed Codex model slug.
+codex_slug() {
+  local fam="$1"
+  case "$fam" in
+    luna|terra|sol|astra) ;;
+    *) echo "$fam"; return ;;   # already a full slug
+  esac
+  codex debug models 2>/dev/null | python3 -c '
+import json, sys
+fam = sys.argv[1]
+d = json.load(sys.stdin)
+ms = d.get("models", d) if isinstance(d, dict) else d
+ms = [m for m in ms if isinstance(m, dict) and m.get("visibility") == "list"
+      and str(m.get("slug", "")).endswith("-" + fam)]
+ms.sort(key=lambda m: m.get("priority", 999))
+print(ms[0]["slug"] if ms else "")
+' "$fam"
+}
+
+# Parse trailing -m/-e options.
+MODEL=""; EFFORT=""
+parse_opts() {
+  while [ $# -gt 0 ]; do
+    case "$1" in
+      -m) MODEL="${2:-}"; shift 2 ;;
+      -e) EFFORT="${2:-}"; shift 2 ;;
+      *) echo "unknown option: $1" >&2; exit 2 ;;
+    esac
+  done
+}
+
+codex_model_args() {
+  local fam="${MODEL:-luna}" eff="${EFFORT:-low}"
+  if [[ "$fam" == *astra* ]] && [ "${TOKENWISE_CODEX_ASTRA:-0}" != "1" ]; then
+    echo "ERROR: astra is blocked (it uses ChatGPT limits very fast). Use sol, or set TOKENWISE_CODEX_ASTRA=1 if your plan allows it." >&2
+    exit 3
+  fi
+  if [ "$eff" = "max" ] || [ "$eff" = "ultra" ]; then
+    echo "ERROR: effort '$eff' is not allowed from tokenwise; use up to xhigh." >&2; exit 3
+  fi
+  local slug; slug="$(codex_slug "$fam")"
+  [ -n "$slug" ] || { echo "ERROR: no Codex model found for '$fam'." >&2; exit 2; }
+  CODEX_ARGS=(-m "$slug" -c "model_reasoning_effort=\"$eff\"")
+  echo "codex model: $slug / $eff" >&2
+}
+
 cmd="${1:-}"; shift || true
 
 case "$cmd" in
   check)
-    if codex_ready; then echo "codex: ready (images: yes)";
+    if codex_ready; then
+      echo "codex: ready (images: yes) — models: luna=$(codex_slug luna) terra=$(codex_slug terra) sol=$(codex_slug sol) astra=$(codex_slug astra) [astra $( [ "${TOKENWISE_CODEX_ASTRA:-0}" = 1 ] && echo allowed || echo blocked )]"
     elif has codex; then echo "codex: installed, NOT signed in -> user runs: codex login";
     else echo "codex: not installed -> npm install -g @openai/codex"; fi
     if gemini_ready; then echo "gemini: ready (images: no)";
@@ -32,10 +84,12 @@ case "$cmd" in
     ;;
 
   image)
-    out="${1:?output path required}"; prompt="${2:?prompt required}"
+    out="${1:?output path required}"; prompt="${2:?prompt required}"; shift 2
+    parse_opts "$@"
     codex_ready || { echo "ERROR: codex not ready. Run: $0 check" >&2; exit 2; }
+    codex_model_args
     work="$(mktemp -d)"
-    ( cd "$work" && codex exec --skip-git-repo-check --sandbox workspace-write \
+    ( cd "$work" && codex exec --skip-git-repo-check --sandbox workspace-write "${CODEX_ARGS[@]}" \
         "Use your image generation tool to create ONE image and save it in the current directory as image.png. Image description: ${prompt}. After saving, reply only with: image.png" \
         >"$work/log.txt" 2>&1 )
     if [ -f "$work/image.png" ]; then
@@ -47,22 +101,24 @@ case "$cmd" in
     ;;
 
   ask)
-    who="${1:?codex|gemini}"; prompt="${2:?prompt required}"
+    who="${1:?codex|gemini}"; prompt="${2:?prompt required}"; shift 2
+    parse_opts "$@"
     case "$who" in
       codex)
         codex_ready || { echo "ERROR: codex not ready. Run: $0 check" >&2; exit 2; }
+        codex_model_args
         last="$(mktemp)"
-        codex exec --skip-git-repo-check --sandbox read-only --output-last-message "$last" "$prompt" >/dev/null 2>&1
+        codex exec --skip-git-repo-check --sandbox read-only "${CODEX_ARGS[@]}" --output-last-message "$last" "$prompt" >/dev/null 2>&1
         cat "$last"; rm -f "$last"
         ;;
       gemini)
         gemini_ready || { echo "ERROR: gemini not ready. Run: $0 check" >&2; exit 2; }
-        gemini -p "$prompt" 2>/dev/null
+        if [ -n "$MODEL" ]; then gemini -m "$MODEL" -p "$prompt" 2>/dev/null; else gemini -p "$prompt" 2>/dev/null; fi
         ;;
       *) echo "unknown worker: $who" >&2; exit 2 ;;
     esac
     ;;
 
   *)
-    sed -n '2,12p' "$0"; exit 2 ;;
+    sed -n '2,16p' "$0"; exit 2 ;;
 esac
