@@ -115,6 +115,10 @@ And when a long stretch of simple work is ahead, a **suggestion** (never a silen
 | `agents/tokenwise-builder.md` | Sonnet: implementation, tests, refactors |
 | `agents/tokenwise-architect.md` | Opus: design, hard bugs, reviews |
 
+## Want a UI? → tokenwise studio
+
+[**tokenwise studio**](https://github.com/OnurSamett/tokenwise-studio) is the companion app: type a task once, and Claude Opus orchestrates while Codex, Claude Haiku/Sonnet or Gemini workers do the work in isolated git worktrees. Live progress, per-file review, one-click commit, and your Claude + ChatGPT plan limits in the sidebar. tokenwise works without it, and it works without tokenwise.
+
 ## Install
 
 **Everything at once (Claude Code + Codex + Gemini, whichever you have):**
