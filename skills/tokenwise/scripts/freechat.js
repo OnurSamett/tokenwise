@@ -55,7 +55,11 @@ function terminalScore(id) {
   }
   const m = BENCH.find((b) => b.agent === "free" && b.match && new RegExp(b.match, "i").test(id));
   if (!m) return null;
-  // Terminal-Bench 2.1 is the most widely reported; fall back to 3.0 (scaled, it's much harder) when 2.1 is missing.
+  // Terminal-Bench 4.0 (official, independently run) comes first, using the score of the variant actually served
+  // (servedTerminalBench40) when it differs. Models without a TB 4.0 result follow, ordered by the older,
+  // mostly vendor-reported TB 2.1, then TB 3.0 (scaled, it's much harder).
+  const tb4 = typeof m.servedTerminalBench40 === "number" ? m.servedTerminalBench40 : m.terminalBench40;
+  if (typeof tb4 === "number") return 1000 + tb4;
   return typeof m.terminalBench21 === "number" ? m.terminalBench21 : typeof m.terminalBench30 === "number" ? 50 + m.terminalBench30 : null;
 }
 

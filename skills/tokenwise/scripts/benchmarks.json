@@ -14,7 +14,7 @@
       "terminalBench30": 28.3,
       "osworld": null,
       "vendorReported": true,
-      "notes": "Numbers are for full GLM-5.3 (753B), not the flash variant. TB 2.1 88.2 and TB 3.0 28.3 are from the Z.ai Hugging Face card (Claude Code harness; TB 3.0 avg@3, max effort). FriendliAI measured TB 2.1 86.5. SWE-bench Verified 94.2 is from FriendliAI only (not on the HF card; unverified). No OSWorld result found.",
+      "notes": "Numbers are for full GLM-5.3 (753B), not the flash variant. TB 2.1 88.2 and TB 3.0 28.3 are from the Z.ai Hugging Face card (Claude Code harness; TB 3.0 avg@3, max effort). FriendliAI measured TB 2.1 86.5. SWE-bench Verified 94.2 is from FriendliAI only (not on the HF card; unverified). No OSWorld result found. TB 4.0: 41.8 Claude Code, max. GLM-5.3-Flash (what NVIDIA serves) scored 36.7.",
       "sources": [
         {
           "name": "Z.ai Hugging Face model card",
@@ -30,8 +30,15 @@
           "name": "MindStudio",
           "url": "https://www.mindstudio.ai/blog/glm-5-3-coding-benchmarks",
           "date": "2026-08"
+        },
+        {
+          "name": "Terminal-Bench 4.0 official leaderboard (Harbor Hub)",
+          "url": "https://hub.harborframework.com/datasets/terminal-bench/terminal-bench/4?tab=leaderboard&leaderboard=4-0-0",
+          "date": "2026-11-14"
         }
-      ]
+      ],
+      "terminalBench40": 41.8,
+      "servedTerminalBench40": 36.7
     },
     {
       "key": "kimi-k3",
@@ -45,7 +52,7 @@
       "terminalBench30": 17.4,
       "osworld": 84.8,
       "vendorReported": true,
-      "notes": "TB 2.1 88.3 and OSWorld-Verified 84.8 from Moonshot's table (Kimi Code harness). FriendliAI measured TB 2.1 80.9. TB 3.0 17.4 is from Z.ai's comparison table. SWE-bench Verified 93.8 is FriendliAI only; other aggregators list 70.7 or 60.4 and Moonshot's table does not report it, so treat as unverified. No sources found for a K3.1 Pro.",
+      "notes": "TB 2.1 88.3 and OSWorld-Verified 84.8 from Moonshot's table (Kimi Code harness). FriendliAI measured TB 2.1 80.9. TB 3.0 17.4 is from Z.ai's comparison table. SWE-bench Verified 93.8 is FriendliAI only; other aggregators list 70.7 or 60.4 and Moonshot's table does not report it, so treat as unverified. No sources found for a K3.1 Pro. TB 4.0: 22.4 Claude Code, max. Kimi K3.1 Pro (a newer variant) scored 60.9.",
       "sources": [
         {
           "name": "Moonshot Kimi-K3 repo",
@@ -61,8 +68,14 @@
           "name": "Respan (Z.ai table)",
           "url": "https://www.respan.ai/articles/glm-vs-kimi",
           "date": "2026"
+        },
+        {
+          "name": "Terminal-Bench 4.0 official leaderboard (Harbor Hub)",
+          "url": "https://hub.harborframework.com/datasets/terminal-bench/terminal-bench/4?tab=leaderboard&leaderboard=4-0-0",
+          "date": "2026-11-14"
         }
-      ]
+      ],
+      "terminalBench40": 22.4
     },
     {
       "key": "kimi-k2.6",
@@ -88,7 +101,8 @@
           "url": "https://deepinfra.com/moonshotai/Kimi-K2.6",
           "date": "2026-04"
         }
-      ]
+      ],
+      "terminalBench40": null
     },
     {
       "key": "mistral-large-4",
@@ -102,7 +116,7 @@
       "terminalBench30": null,
       "osworld": null,
       "vendorReported": true,
-      "notes": "None of the four metrics found. Mistral reports Terminal-Bench 4.0 at 41% (open-weight release; 28.3% at preview) and DeepSWE 1.1 at 61.7%.",
+      "notes": "None of the four metrics found. Mistral reports Terminal-Bench 4.0 at 41% (open-weight release; 28.3% at preview) and DeepSWE 1.1 at 61.7%. TB 4.0: 27.9 Claude Code, max.",
       "sources": [
         {
           "name": "Mistral",
@@ -113,8 +127,14 @@
           "name": "LLM Stats",
           "url": "https://llm-stats.com/blog/research/mistral-large-4-launch",
           "date": "2026-10"
+        },
+        {
+          "name": "Terminal-Bench 4.0 official leaderboard (Harbor Hub)",
+          "url": "https://hub.harborframework.com/datasets/terminal-bench/terminal-bench/4?tab=leaderboard&leaderboard=4-0-0",
+          "date": "2026-11-14"
         }
-      ]
+      ],
+      "terminalBench40": 27.9
     },
     {
       "key": "deepseek-v4.1",
@@ -128,7 +148,7 @@
       "terminalBench30": null,
       "osworld": null,
       "vendorReported": false,
-      "notes": "Flash-specific numbers. TB 2.1: Vals AI run 74.5; BenchLM lists 90.6 (unexplained gap). MindStudio blog claims TB 3.0 about 30, left null as low-confidence. SWE-bench Verified not reported for V4.1 Flash (79 was for older V4 Flash 0731).",
+      "notes": "Flash-specific numbers. TB 2.1: Vals AI run 74.5; BenchLM lists 90.6 (unexplained gap). MindStudio blog claims TB 3.0 about 30, left null as low-confidence. SWE-bench Verified not reported for V4.1 Flash (79 was for older V4 Flash 0731). TB 4.0: 40 DeepSeek V4.1 Flash 1017 (the served variant), Claude Code, max.",
       "sources": [
         {
           "name": "BenchLM",
@@ -139,8 +159,15 @@
           "name": "MindStudio",
           "url": "https://www.mindstudio.ai/blog/deepseek-v4-1-flash-benchmarks/",
           "date": "2026"
+        },
+        {
+          "name": "Terminal-Bench 4.0 official leaderboard (Harbor Hub)",
+          "url": "https://hub.harborframework.com/datasets/terminal-bench/terminal-bench/4?tab=leaderboard&leaderboard=4-0-0",
+          "date": "2026-11-14"
         }
-      ]
+      ],
+      "terminalBench40": 40,
+      "servedTerminalBench40": 40
     },
     {
       "key": "nemotron-3-ultra",
@@ -166,7 +193,8 @@
           "url": "https://research.nvidia.com/labs/nemotron/files/NVIDIA-Nemotron-3-Ultra-Technical-Report.pdf",
           "date": "2026"
         }
-      ]
+      ],
+      "terminalBench40": null
     },
     {
       "key": "step-5",
@@ -176,7 +204,7 @@
       "agent": "free",
       "servedAs": "step-5-preview (NVIDIA)",
       "swebenchVerified": null,
-      "terminalBench21": 85.0,
+      "terminalBench21": 85,
       "terminalBench30": null,
       "osworld": null,
       "vendorReported": true,
@@ -192,7 +220,8 @@
           "url": "https://benchlm.ai/models/step-5-preview",
           "date": "2026"
         }
-      ]
+      ],
+      "terminalBench40": null
     },
     {
       "key": "minimax-m3.1",
@@ -202,11 +231,11 @@
       "agent": "free",
       "servedAs": "minimax-m3.1-flash (NVIDIA free)",
       "swebenchVerified": 80.5,
-      "terminalBench21": 66.0,
+      "terminalBench21": 66,
       "terminalBench30": null,
       "osworld": null,
       "vendorReported": true,
-      "notes": "Numbers are for MiniMax M3 (no M3.1 or flash figures found) as vendor-reported. TB 2.1 independent runs: Vals 53.6, Artificial Analysis 65.2. SWE-bench Verified is considered contaminated.",
+      "notes": "Numbers are for MiniMax M3 (no M3.1 or flash figures found) as vendor-reported. TB 2.1 independent runs: Vals 53.6, Artificial Analysis 65.2. SWE-bench Verified is considered contaminated. TB 4.0: Only MiniMax M3 is listed (7.3).",
       "sources": [
         {
           "name": "BenchLM",
@@ -217,8 +246,14 @@
           "name": "LLM Stats TB 2.1",
           "url": "https://llm-stats.com/benchmarks/terminal-bench-2.1",
           "date": "2026"
+        },
+        {
+          "name": "Terminal-Bench 4.0 official leaderboard (Harbor Hub)",
+          "url": "https://hub.harborframework.com/datasets/terminal-bench/terminal-bench/4?tab=leaderboard&leaderboard=4-0-0",
+          "date": "2026-11-14"
         }
-      ]
+      ],
+      "terminalBench40": null
     },
     {
       "key": "gpt-6.1-sol",
@@ -232,12 +267,40 @@
       "terminalBench30": null,
       "osworld": null,
       "vendorReported": true,
-      "notes": "Old benchmarks not reported. OpenAI reports OSWorld 2.0 (offline) about 71.4 (aggregator) and Terminal-Bench Science 0.1 about 57.0; different benchmarks, so not in the table.",
+      "notes": "Old benchmarks not reported. OpenAI reports OSWorld 2.0 (offline) about 71.4 (aggregator) and Terminal-Bench Science 0.1 about 57.0; different benchmarks, so not in the table. TB 4.0: 58.2 Codex, max.",
       "sources": [
         {
           "name": "OpenAI",
           "url": "https://openai.com/index/introducing-gpt-6-1-sol/",
           "date": "2026-09-30"
+        },
+        {
+          "name": "Terminal-Bench 4.0 official leaderboard (Harbor Hub)",
+          "url": "https://hub.harborframework.com/datasets/terminal-bench/terminal-bench/4?tab=leaderboard&leaderboard=4-0-0",
+          "date": "2026-11-14"
+        }
+      ],
+      "terminalBench40": 58.2
+    },
+    {
+      "swebenchVerified": null,
+      "terminalBench21": null,
+      "terminalBench30": null,
+      "osworld": null,
+      "vendorReported": false,
+      "key": "gpt-6.1-terra",
+      "label": "GPT-6.1 Terra",
+      "maker": "OpenAI",
+      "match": "terra",
+      "agent": "codex",
+      "servedAs": "Codex",
+      "terminalBench40": 51.8,
+      "notes": "TB 4.0: 51.8 Codex, max. The cheaper Codex default for simple and mechanical work.",
+      "sources": [
+        {
+          "name": "Terminal-Bench 4.0 official leaderboard (Harbor Hub)",
+          "url": "https://hub.harborframework.com/datasets/terminal-bench/terminal-bench/4?tab=leaderboard&leaderboard=4-0-0",
+          "date": "2026-11-14"
         }
       ]
     },
@@ -253,14 +316,20 @@
       "terminalBench30": null,
       "osworld": null,
       "vendorReported": true,
-      "notes": "Old benchmarks not reported. OSWorld 2.0 offline 72.6 and Terminal-Bench Science 0.1 68.1 are different benchmarks.",
+      "notes": "Old benchmarks not reported. OSWorld 2.0 offline 72.6 and Terminal-Bench Science 0.1 68.1 are different benchmarks. TB 4.0: 58.2 Codex, max (high 57.9, medium 54.2).",
       "sources": [
         {
           "name": "OpenAI",
           "url": "https://openai.com/index/introducing-gpt-6-1-sol/",
           "date": "2026-09-30"
+        },
+        {
+          "name": "Terminal-Bench 4.0 official leaderboard (Harbor Hub)",
+          "url": "https://hub.harborframework.com/datasets/terminal-bench/terminal-bench/4?tab=leaderboard&leaderboard=4-0-0",
+          "date": "2026-11-14"
         }
-      ]
+      ],
+      "terminalBench40": 58.2
     },
     {
       "key": "claude-opus-5.5",
@@ -274,14 +343,20 @@
       "terminalBench30": null,
       "osworld": null,
       "vendorReported": true,
-      "notes": "SWE-bench Verified, TB 2.1/3.0 not found. Reports Terminal-Bench 4.0 66.4 (xhigh), SWE-Bench Pro 89.9, OSWorld 2.x 81.8 partial / 48.7 strict (not comparable to OSWorld-Verified).",
+      "notes": "SWE-bench Verified, TB 2.1/3.0 not found. Reports Terminal-Bench 4.0 66.4 (xhigh), SWE-Bench Pro 89.9, OSWorld 2.x 81.8 partial / 48.7 strict (not comparable to OSWorld-Verified). TB 4.0: 64.8 Claude Code, max; #1 on the board.",
       "sources": [
         {
           "name": "LLM Stats",
           "url": "https://llm-stats.com/blog/research/claude-opus-5-5-launch",
           "date": "2026"
+        },
+        {
+          "name": "Terminal-Bench 4.0 official leaderboard (Harbor Hub)",
+          "url": "https://hub.harborframework.com/datasets/terminal-bench/terminal-bench/4?tab=leaderboard&leaderboard=4-0-0",
+          "date": "2026-11-14"
         }
-      ]
+      ],
+      "terminalBench40": 64.8
     },
     {
       "key": "claude-sonnet-5.5",
@@ -295,12 +370,40 @@
       "terminalBench30": null,
       "osworld": null,
       "vendorReported": true,
-      "notes": "Not found on requested metrics. Reports Terminal-Bench 4.0 70.6, SWE-Bench Pro 81.3, OSWorld 2.x 80.1 partial / 43.5 strict.",
+      "notes": "Not found on requested metrics. Reports Terminal-Bench 4.0 70.6, SWE-Bench Pro 81.3, OSWorld 2.x 80.1 partial / 43.5 strict. TB 4.0: 61.8 Claude Code, max.",
       "sources": [
         {
           "name": "LLM Stats",
           "url": "https://llm-stats.com/blog/research/claude-sonnet-5-5-launch",
           "date": "2026"
+        },
+        {
+          "name": "Terminal-Bench 4.0 official leaderboard (Harbor Hub)",
+          "url": "https://hub.harborframework.com/datasets/terminal-bench/terminal-bench/4?tab=leaderboard&leaderboard=4-0-0",
+          "date": "2026-11-14"
+        }
+      ],
+      "terminalBench40": 61.8
+    },
+    {
+      "swebenchVerified": null,
+      "terminalBench21": null,
+      "terminalBench30": null,
+      "osworld": null,
+      "vendorReported": false,
+      "key": "claude-haiku-5.5",
+      "label": "Claude Haiku 5.5",
+      "maker": "Anthropic",
+      "match": "haiku",
+      "agent": "claude",
+      "servedAs": "Claude",
+      "terminalBench40": 40,
+      "notes": "TB 4.0: 40.0 Claude Code, max. Fast and cheap; studio uses it for search and summaries.",
+      "sources": [
+        {
+          "name": "Terminal-Bench 4.0 official leaderboard (Harbor Hub)",
+          "url": "https://hub.harborframework.com/datasets/terminal-bench/terminal-bench/4?tab=leaderboard&leaderboard=4-0-0",
+          "date": "2026-11-14"
         }
       ]
     },
@@ -316,14 +419,20 @@
       "terminalBench30": null,
       "osworld": null,
       "vendorReported": true,
-      "notes": "Not found on requested metrics. Reports Terminal-Bench 4.0 57.4 and OSWorld 2.0 offline 69.2 (partial); no SWE-bench Verified.",
+      "notes": "Not found on requested metrics. Reports Terminal-Bench 4.0 57.4 and OSWorld 2.0 offline 69.2 (partial); no SWE-bench Verified. TB 4.0: 54.8 Antigravity CLI, high.",
       "sources": [
         {
           "name": "Apidog",
           "url": "https://apidog.com/blog/gemini-4-argon-benchmarks/",
           "date": "2026-09-30"
+        },
+        {
+          "name": "Terminal-Bench 4.0 official leaderboard (Harbor Hub)",
+          "url": "https://hub.harborframework.com/datasets/terminal-bench/terminal-bench/4?tab=leaderboard&leaderboard=4-0-0",
+          "date": "2026-11-14"
         }
-      ]
+      ],
+      "terminalBench40": 54.8
     },
     {
       "key": "gemini-4-hydrogen",
@@ -337,8 +446,15 @@
       "terminalBench30": null,
       "osworld": null,
       "vendorReported": false,
-      "notes": "No benchmarks found.",
-      "sources": []
+      "notes": "No benchmarks found. TB 4.0: Not on the 4.0 board; 56.4 on 4.1 (Antigravity CLI, high).",
+      "sources": [
+        {
+          "name": "Terminal-Bench 4.0 official leaderboard (Harbor Hub)",
+          "url": "https://hub.harborframework.com/datasets/terminal-bench/terminal-bench/4?tab=leaderboard&leaderboard=4-0-0",
+          "date": "2026-11-14"
+        }
+      ],
+      "terminalBench40": null
     }
   ]
 }
