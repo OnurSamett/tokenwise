@@ -9,7 +9,7 @@ tokenwise is a Claude Code skill + three subagents that pick the right **model**
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 ![Claude Code](https://img.shields.io/badge/Claude%20Code-skill%20%2B%20plugin-orange)
 
-**Works in:** Claude Code · OpenAI Codex CLI · Google Gemini CLI. Install once, and every agent can hand work to the others. Want a UI and per-file review? See [tokenwise studio](https://github.com/OnurSamett/tokenwise-studio). Website: [tokenwise.site](https://tokenwise.site).
+**Works in:** Claude Code · OpenAI Codex CLI · Google Gemini CLI. Use the skill inside your existing agent in the terminal or a supported IDE integration; IDE support depends on the host. Optional provider CLIs let supported agents hand suitable work to another provider. Want a separate desktop and local web UI with worktrees and per-file review? See [tokenwise studio](https://github.com/OnurSamett/tokenwise-studio). Use either independently or both together. Website: [tokenwise.site](https://tokenwise.site).
 
 [Türkçe açıklama](#-türkçe)
 
@@ -124,7 +124,7 @@ And when a long stretch of simple work is ahead, a **suggestion** (never a silen
 
 ## Want a UI? → tokenwise studio
 
-[**tokenwise studio**](https://github.com/OnurSamett/tokenwise-studio) is the companion app: type a task once, and Claude Opus orchestrates while Codex, Claude Haiku/Sonnet or Gemini workers do the work in isolated git worktrees. Live progress, per-file review, one-click commit, and your Claude + ChatGPT plan limits in the sidebar. tokenwise works without it, and it works without tokenwise.
+[**tokenwise studio**](https://github.com/OnurSamett/tokenwise-studio) is a separate desktop and local web app for orchestrating workers, reviewing changes from isolated git worktrees, and viewing usage. The tokenwise skill runs inside your coding agent instead, including supported terminal or IDE workflows. Each works independently; you can also use them together.
 
 ## Install
 
