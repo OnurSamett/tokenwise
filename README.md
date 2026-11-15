@@ -8,18 +8,22 @@ tokenwise is a Claude Code skill + three subagents that pick the right **model**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 ![Claude Code](https://img.shields.io/badge/Claude%20Code-skill%20%2B%20plugin-orange)
-![Claude](https://img.shields.io/badge/Claude-Haiku%20%7C%20Sonnet%20%7C%20Opus-blue)
-![ChatGPT Codex](https://img.shields.io/badge/ChatGPT%20Codex-Terra%20%7C%20Sol%20%7C%20images-green)
 
-**Works in:** Claude Code · OpenAI Codex CLI · Google Gemini CLI. Install once, and every agent can hand work to the others.
+**Works in:** Claude Code · OpenAI Codex CLI · Google Gemini CLI. Install once, and every agent can hand work to the others. Want a UI and per-file review? See [tokenwise studio](https://github.com/OnurSamett/tokenwise-studio). Website: [tokenwise.site](https://tokenwise.site).
 
-*🇹🇷 Türkçe açıklama aşağıda.*
+[Türkçe açıklama](#-türkçe)
 
 ---
 
 ## Why
 
 If you're on a Claude plan, you've probably hit the usage limit in the middle of something important. A big part of that usage goes to work that never needed the most expensive model: searching files, reading logs, writing boilerplate, running tests.
+
+The numbers behind it (Terminal-Bench 4.0, a snapshot; see the [official board](https://hub.harborframework.com/datasets/terminal-bench/terminal-bench/4?tab=leaderboard&leaderboard=4-0-0) for current scores):
+
+- A free model can tie a paid one: DeepSeek V4.1 Flash (free on NVIDIA) scores 40.0, the same as Claude Haiku 5.5.
+- GPT-6.1 Sol and GPT-6 Astra both score 58.2, and Sol costs about one fifth as much.
+- Claude Opus 5.5 scores 64.8, so keep it for design and unknown bugs.
 
 tokenwise splits the work:
 
@@ -74,7 +78,7 @@ haiku/low → haiku/medium → sonnet/medium → sonnet/high → opus/high → o
 
 `max` is never used unless you ask for it.
 
-## 🤝 ChatGPT Codex & Gemini as extra workers (optional)
+## ChatGPT Codex and Gemini as extra workers (optional)
 
 Got the [OpenAI Codex CLI](https://github.com/openai/codex) or [Gemini CLI](https://github.com/google-gemini/gemini-cli) signed in? tokenwise can hand work to them, and that costs **zero Claude usage**:
 
@@ -196,6 +200,10 @@ Claude Code, Codex CLI ve Gemini CLI'ın üçünde de çalışır: tek komutla h
 Küçük işler için alt ajan açmaz, çünkü alt ajan sıfırdan başlar ve o da token harcar. Ana oturumun modelini ya da eforunu kendi başına değiştirmez, yalnızca önerir.
 
 **Kurulum:** yukarıdaki iki yoldan biriyle kur, sonra yeni bir oturum aç.
+
+## Status and trademarks
+
+Version 0.9, the same release as tokenwise studio. Tested with Claude Code and Codex CLI; Gemini CLI is wired up but less tested. The skill is Markdown plus a shell script (`external.sh` needs bash), so Linux should work; only macOS is tested. Provider and model names are used only to identify the tools. This project is not affiliated with, endorsed by, or sponsored by OpenAI, Anthropic, Google, NVIDIA or any other provider named.
 
 ## License
 
