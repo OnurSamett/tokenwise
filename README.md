@@ -2,9 +2,9 @@
 
 ![tokenwise: Right model. Right effort. Longer limits.](assets/tokenwise-cover.png)
 
-**Make your Claude and ChatGPT limits last longer — without making the work worse.**
+**Make your AI limits last longer with the right model and effort for the task.**
 
-tokenwise is a Claude Code skill + three subagents that pick the right **model** (Claude Haiku, Sonnet, Opus, or ChatGPT Codex models via the Codex CLI) *and* the right **reasoning effort** (low → xhigh) for every piece of work. It spreads work across both your Claude and ChatGPT plans, and lets Claude generate images through Codex. Grepping a repo doesn't need Opus. Debugging a race condition does. tokenwise makes that call for you.
+tokenwise is a skill for Claude Code, Codex CLI and Gemini CLI that helps choose a suitable **model** and **reasoning effort** for each part of a task. Optional provider CLIs can handle delegated work; an image-capable Codex setup can generate images. Availability depends on the host and your accounts. Simple tasks stay in the main session when delegation would add unnecessary overhead.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 ![Claude Code](https://img.shields.io/badge/Claude%20Code-skill%20%2B%20plugin-orange)
@@ -32,6 +32,10 @@ tokenwise splits the work:
 - 🧠 **Hard thinking** (architecture, unknown bugs, security) → **Opus**, effort by risk
 
 And it **doesn't over-delegate**: subagents start cold and re-read context, so small tasks stay in the main session.
+
+## Measuring usage and cost
+
+The same task can use different amounts of tokens and cost depending on routing, model and effort. Compare against a baseline and check output quality; delegation can add overhead. API-equivalent costs are estimates, not subscription charges. See [the benchmark method](bench/README.md).
 
 ## How it decides
 
@@ -82,7 +86,7 @@ haiku/low → haiku/medium → sonnet/medium → sonnet/high → opus/high → o
 
 Got the [OpenAI Codex CLI](https://github.com/openai/codex) or [Gemini CLI](https://github.com/google-gemini/gemini-cli) signed in? tokenwise can hand work to them, and that costs **zero Claude usage**:
 
-- 🎨 **Image generation** (Claude can't make images): icons, banners, OG/social images, illustrations. Codex generates the file and Claude checks it. *The cover image above was made this way.*
+- 🎨 **Image generation** (through an image-capable Codex setup): icons, banners, OG/social images, illustrations. Codex generates the file and Claude checks it. *The cover image above was made this way.*
 - 🔎 **Second opinions** on high-stakes design or review decisions, from a different model family.
 - 📝 **Self-contained text work** (summaries, drafts, translations, test data) when your Claude limits are tight.
 
