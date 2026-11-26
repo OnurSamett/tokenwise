@@ -2,14 +2,14 @@
 
 ![tokenwise: Right model. Right effort. Longer limits.](assets/tokenwise-cover.png)
 
-**Make your AI limits last longer with the right model and effort for the task.**
+**An open-source model routing skill for Claude Code, Codex CLI and Gemini CLI.**
 
 tokenwise is a skill for Claude Code, Codex CLI and Gemini CLI that helps choose a suitable **model** and **reasoning effort** for each part of a task. Optional provider CLIs can handle delegated work; an image-capable Codex setup can generate images. Availability depends on the host and your accounts. Simple tasks stay in the main session when delegation would add unnecessary overhead.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 ![Claude Code](https://img.shields.io/badge/Claude%20Code-skill%20%2B%20plugin-orange)
 
-**Works in:** Claude Code · OpenAI Codex CLI · Google Gemini CLI. Use the skill inside your existing agent in the terminal or a supported IDE integration; IDE support depends on the host. Optional provider CLIs let supported agents hand suitable work to another provider. Want a separate desktop and local web UI with worktrees and per-file review? See [tokenwise studio](https://github.com/OnurSamett/tokenwise-studio). Use either independently or both together. Website: [tokenwise.site](https://tokenwise.site).
+**Works in:** Claude Code · OpenAI Codex CLI · Google Gemini CLI. Use the skill inside your existing agent in the terminal or a supported IDE integration; IDE support depends on the host. Optional provider CLIs let supported agents hand suitable work to another provider. Want a separate desktop and local web UI with worktrees and per-file review? See [tokenwise studio](https://github.com/OnurSamett/tokenwise-studio). Use either independently or both together. Website: [tokenwise.site/skill](https://tokenwise.site/skill/).
 
 [Türkçe açıklama](#-türkçe)
 
