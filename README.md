@@ -1,6 +1,6 @@
 # 🪙 tokenwise
 
-![tokenwise: Right model, right effort for Claude Code, Codex CLI and Gemini CLI](assets/tokenwise-cover-v2.png)
+![tokenwise: Right model, right effort for Claude Code, Codex CLI, Gemini CLI and Cursor](assets/tokenwise-cover-v3.png)
 
 **An open-source model routing skill for Claude Code, Codex CLI and Gemini CLI.**
 
@@ -38,6 +38,10 @@ And it **doesn't over-delegate**: subagents start cold and re-read context, so s
 The same task can use different amounts of tokens and cost depending on routing, model and effort. Compare against a baseline and check output quality; delegation can add overhead. API-equivalent costs are estimates, not subscription charges. See [the benchmark method](bench/README.md).
 
 ## How it decides
+
+![Conceptual workflow: task, model and effort selection, collaborating coding agents, and review](assets/tokenwise-workflow.png)
+
+*Illustrative workflow. Available agents and integrations depend on your host, installed tools and accounts. The main session’s model and effort are not changed silently.*
 
 Two independent questions for every piece of work:
 
