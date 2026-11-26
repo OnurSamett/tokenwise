@@ -1,6 +1,6 @@
 # 🪙 tokenwise
 
-![tokenwise: Right model. Right effort. Longer limits.](assets/tokenwise-cover.png)
+![tokenwise: Right model, right effort for Claude Code, Codex CLI and Gemini CLI](assets/tokenwise-cover-v2.png)
 
 **An open-source model routing skill for Claude Code, Codex CLI and Gemini CLI.**
 
